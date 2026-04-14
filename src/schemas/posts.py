@@ -14,3 +14,10 @@ class PostsGetSchema(AddedPostsSchema):
 
     updated_at: datetime
     created_at: datetime
+
+
+class PostsPageGetSchema(BaseModel):
+    data: list[PostsGetSchema]
+
+    page: int
+    is_last_page: bool

@@ -24,6 +24,8 @@ class Settings(BaseModel):
         f"postgresql+psycopg://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
     )
 
+    RECORDS_COUNT_ON_PAGE: int = 10
+
 
 settings = Settings()
 

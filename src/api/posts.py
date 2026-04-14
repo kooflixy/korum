@@ -1,13 +1,31 @@
-from typing import Optional
+from typing import Literal, Optional
 
 from fastapi import APIRouter, HTTPException, status
 
+from src.config import settings
 from src.db import async_session_factory
 from src.db.models import PostsORM
 from src.db.queries import PostsORMHandler
-from src.schemas.posts import AddedPostsSchema, PostsGetSchema
+from src.schemas.posts import AddedPostsSchema, PostsGetSchema, PostsPageGetSchema
 
 router = APIRouter(prefix="/posts")
+
+
+@router.get("/page")
+async def get_posts_page(
+    page: int = 1, sort_by: Literal["id"] = "id"
+) -> PostsPageGetSchema:
+    async with async_session_factory() as session:
+        posts_list = await PostsORMHandler.get_page(session, page)
+
+        if len(posts_list) < settings.RECORDS_COUNT_ON_PAGE:
+            is_last_page = True
+        else:
+            is_last_page = await PostsORMHandler.is_last_page(session, page)
+
+        res = dict(data=posts_list, page=page, is_last_page=is_last_page)
+
+        return res
 
 
 @router.get("/{post_id}")
