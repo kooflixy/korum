@@ -30,7 +30,11 @@ function generate_post_preview(post_data) {
     title.textContent = post_data.title
 
     let content = document.createElement('p')
-    content.textContent = post_data.content
+    let post_content = post_data.content
+    if (post_content && post_content.length>100) {
+        post_content = post_content.slice(0,100)+'...'
+    }
+    content.textContent = post_content
 
     let created_at = document.createElement('p')
     created_at.textContent = formate_date(post_data.created_at)
@@ -39,7 +43,7 @@ function generate_post_preview(post_data) {
     posts_list_div.append(post_div)
 }
 
-async function load_posts() {
+async function load_posts_previews() {
     post_page = post_page + 1
 
     var response = await get_posts_page(post_page)
