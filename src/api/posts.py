@@ -13,15 +13,21 @@ router = APIRouter(prefix="/posts")
 
 @router.get("/page")
 async def get_posts_page(
-    page: int = 1, sort_by: Literal["id"] = "id"
+    page: int = 1,
+    sort_by: Literal["id"] = "id",
+    order_by: Literal["asc", "desc"] = "desc",
 ) -> PostsPageGetSchema:
     async with async_session_factory() as session:
-        posts_list = await PostsORMHandler.get_page(session, page)
+        posts_list = await PostsORMHandler.get_page(
+            session, page=page, sort_by=sort_by, order_by=order_by
+        )
 
         if len(posts_list) < settings.RECORDS_COUNT_ON_PAGE:
             is_last_page = True
         else:
-            is_last_page = await PostsORMHandler.is_last_page(session, page)
+            is_last_page = await PostsORMHandler.is_last_page(
+                session, page=page, sort_by=sort_by, order_by=order_by
+            )
 
         res = dict(data=posts_list, page=page, is_last_page=is_last_page)
 

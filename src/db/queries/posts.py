@@ -30,9 +30,17 @@ class PostsORMHandler(BaseORMHandler[PostsORM]):
         cls,
         session: AsyncSession,
         page: int,
+        sort_by: str = "id",
+        order_by: str = "desc",
         on_page: int = settings.RECORDS_COUNT_ON_PAGE,
     ):
-        query = select(cls.model_cls).offset(on_page * ((page - 1))).limit(on_page)
+        order_column = cls.get_order_column_and_order(order_by, sort_by)
+        query = (
+            select(cls.model_cls)
+            .order_by(order_column)
+            .offset(on_page * ((page - 1)))
+            .limit(on_page)
+        )
 
         obj_list = (await session.execute(query)).scalars().all()
         return obj_list
@@ -42,6 +50,16 @@ class PostsORMHandler(BaseORMHandler[PostsORM]):
         cls,
         session: AsyncSession,
         page: int,
+        sort_by: str = "id",
+        order_by: str = "desc",
         on_page: int = settings.RECORDS_COUNT_ON_PAGE,
     ):
-        return (await cls.get_page(session, page=page + 1, on_page=on_page)) == []
+        return (
+            await cls.get_page(
+                session,
+                page=page + 1,
+                sort_by=sort_by,
+                order_by=order_by,
+                on_page=on_page,
+            )
+        ) == []

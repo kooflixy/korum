@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from logging import getLogger
-from typing import Generic, Optional, Type, TypeVar, Union
+from typing import Generic, Literal, Optional, Type, TypeVar, Union
 
 from sqlalchemy import delete, desc, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -69,3 +69,13 @@ class BaseORMHandler(Generic[ModelType], ABC):
         query = delete(cls.model_cls).filter_by(id=pk_value)
 
         await session.execute(query)
+
+    @classmethod
+    def get_order_column_and_order(
+        cls, order_by: str, sort_by: Literal["asc", "desc"] = "desc"
+    ):
+        order_column = getattr(cls.model_cls, sort_by)
+        if order_by == "desc":
+            order_column = desc(order_column)
+
+        return order_column
