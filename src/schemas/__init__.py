@@ -1,1 +1,1 @@
-from src.schemas import posts
+from src.schemas import post

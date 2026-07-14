@@ -4,20 +4,23 @@ from typing import Optional
 from pydantic import BaseModel, Field
 
 
-class AddedPostsSchema(BaseModel):
+class PostCreate(BaseModel):
     title: str = Field(min_length=1, max_length=256)
     content: Optional[str]
 
 
-class PostsGetSchema(AddedPostsSchema):
+class PostResponse(PostCreate):
     id: int
+
+    title: str = Field(min_length=1, max_length=256)
+    content: Optional[str]
 
     updated_at: datetime
     created_at: datetime
 
 
-class PostsPageGetSchema(BaseModel):
-    data: list[PostsGetSchema]
+class PostListResponse(BaseModel):
+    data: list[PostResponse]
 
     page: int
     is_last_page: bool

@@ -6,7 +6,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from src.db.database import Base, created_attp, updated_attp
 
 
-class PostsORM(Base):
+class PostORM(Base):
     __tablename__ = "posts_table"
 
     title: Mapped[str] = mapped_column(String(256))

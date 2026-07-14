@@ -7,14 +7,14 @@ from sqlalchemy.orm import selectinload
 
 from src.config import settings
 from src.db.database import async_session_factory
-from src.db.models import PostsORM
-from src.db.queries import BaseORMHandler
+from src.db.models import PostORM
+from src.db.repositories import BaseRepository
 
 log = getLogger(__name__)
 
 
-class PostsORMHandler(BaseORMHandler[PostsORM]):
-    model_cls = PostsORM
+class PostRepository(BaseRepository[PostORM]):
+    model_cls = PostORM
     use_unique_scalars = True
 
     @classmethod

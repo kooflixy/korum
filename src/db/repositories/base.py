@@ -12,7 +12,7 @@ log = getLogger()
 ModelType = TypeVar("ModelType", bound=Base)
 
 
-class BaseORMHandler(Generic[ModelType], ABC):
+class BaseRepository(Generic[ModelType], ABC):
     model_cls: Type[ModelType]
     use_unique_scalars: bool
 
