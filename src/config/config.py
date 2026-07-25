@@ -1,5 +1,6 @@
 import os
 from logging import getLogger
+from pathlib import Path
 
 from dotenv import load_dotenv
 from pydantic import BaseModel
@@ -23,6 +24,10 @@ class Settings(BaseModel):
     DATABASE_URL_psycopg: str = (
         f"postgresql+psycopg://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
     )
+
+    PRIVATE_KEY: str = open("certs/private.pem", "r", encoding="utf-8").read()
+    PUBLIC_KEY: str = open("certs/public.pem", "r", encoding="utf-8").read()
+    ALGORITHM: str = "RS256"
 
     RECORDS_COUNT_ON_PAGE: int = 10
 

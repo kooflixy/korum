@@ -18,7 +18,7 @@ class PostRepository(BaseRepository[PostORM]):
     use_unique_scalars = True
 
     @classmethod
-    async def insert(cls, session: AsyncSession, title: str, content: str):
+    async def insert(cls, session: AsyncSession, title: str, content: str) -> PostORM:
         """Делает запись и возвращает записанный объект"""
 
         obj = await cls._insert(session, title=title, content=content)
@@ -33,7 +33,7 @@ class PostRepository(BaseRepository[PostORM]):
         sort_by: str = "id",
         order_by: str = "desc",
         on_page: int = settings.RECORDS_COUNT_ON_PAGE,
-    ):
+    ) -> list[PostORM]:
         order_column = cls.get_order_column_and_order(order_by, sort_by)
         query = (
             select(cls.model_cls)
@@ -53,7 +53,7 @@ class PostRepository(BaseRepository[PostORM]):
         sort_by: str = "id",
         order_by: str = "desc",
         on_page: int = settings.RECORDS_COUNT_ON_PAGE,
-    ):
+    ) -> bool:
         return (
             await cls.get_page(
                 session,

@@ -14,3 +14,8 @@ def get_html(path: str):
 @router.get("/")
 async def home():
     return HTMLResponse(get_html("home.html"))
+
+
+@router.get("/register")
+async def registration():
+    return HTMLResponse(get_html("registration.html"))
