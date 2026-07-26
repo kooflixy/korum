@@ -5,7 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.repository import BaseRepository
-from src.features.auth.model import UserORM
+from src.features.users.model import UserORM
 
 log = getLogger(__name__)
 

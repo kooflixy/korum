@@ -11,11 +11,11 @@ def get_html(path: str):
     return open(path, "r", encoding="utf-8").read()
 
 
-@router.get("/", tags=['FRONTEND'])
+@router.get("/", tags=["FRONTEND"])
 async def home():
     return HTMLResponse(get_html("home.html"))
 
 
-@router.get("/register", tags=['FRONTEND'])
+@router.get("/register", tags=["FRONTEND"])
 async def registration():
     return HTMLResponse(get_html("registration.html"))

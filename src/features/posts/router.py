@@ -11,7 +11,7 @@ from src.features.posts.schemas import PostCreate, PostListResponse, PostRespons
 router = APIRouter(prefix="/posts")
 
 
-@router.get("/page", response_model=PostListResponse, tags=['Posts'])
+@router.get("/page", response_model=PostListResponse, tags=["Posts"])
 async def get_posts_page(
     page: int = 1,
     sort_by: Literal["id"] = "id",
@@ -34,7 +34,7 @@ async def get_posts_page(
         return res
 
 
-@router.get("/{post_id}", response_model=PostResponse, tags=['Posts'])
+@router.get("/{post_id}", response_model=PostResponse, tags=["Posts"])
 async def get_post(post_id: int) -> PostResponse:
     async with async_session_factory() as session:
         post = await PostRepository.get(session, post_id)
@@ -45,7 +45,7 @@ async def get_post(post_id: int) -> PostResponse:
         return post
 
 
-@router.post("/create", status_code=status.HTTP_201_CREATED, tags=['Posts'])
+@router.post("/create", status_code=status.HTTP_201_CREATED, tags=["Posts"])
 async def create_post(new_post: PostCreate):
     async with async_session_factory() as session:
         await PostRepository.insert(
