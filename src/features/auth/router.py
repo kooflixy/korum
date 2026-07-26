@@ -8,7 +8,7 @@ from src.features.auth.security import hash_password
 router = APIRouter(prefix="/users")
 
 
-@router.post("/register", status_code=status.HTTP_201_CREATED)
+@router.post("/register", status_code=status.HTTP_201_CREATED, tags=['Users'])
 async def register(new_user: UserCreate):
     async with async_session_factory() as session:
         if await UserRepository.get_by_username(session, username=new_user.username):
@@ -22,7 +22,7 @@ async def register(new_user: UserCreate):
         await session.commit()
 
 
-@router.get("/{user_id}", response_model=UserResponse)
+@router.get("/{user_id}", response_model=UserResponse, tags=['Users'])
 async def get_user(user_id: int) -> UserResponse:
     async with async_session_factory() as session:
         user = await UserRepository.get_by_id(session, id=user_id)
