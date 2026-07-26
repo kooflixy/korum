@@ -1,14 +1,11 @@
 from logging import getLogger
-from typing import Optional
 
-from sqlalchemy import delete, desc, func, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
-from src.config import settings
-from src.db.database import async_session_factory
-from src.db.models import PostORM
-from src.db.repositories import BaseRepository
+from src.core.config import settings
+from src.core.repository import BaseRepository
+from src.features.posts.model import PostORM
 
 log = getLogger(__name__)
 

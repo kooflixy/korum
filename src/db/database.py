@@ -5,7 +5,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
-from src.config import settings
+from src.core.config import settings
 
 async_engine = create_async_engine(url=settings.DATABASE_URL_asyncpg)
 

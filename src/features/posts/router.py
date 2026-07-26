@@ -2,16 +2,16 @@ from typing import Literal, Optional
 
 from fastapi import APIRouter, HTTPException, status
 
-from src.config import settings
+from src.core.config import settings
 from src.db import async_session_factory
-from src.db.models import PostORM
-from src.db.repositories import PostRepository
-from src.schemas.post import PostCreate, PostListResponse, PostResponse
+from src.features.posts.model import PostORM
+from src.features.posts.repository import PostRepository
+from src.features.posts.schemas import PostCreate, PostListResponse, PostResponse
 
 router = APIRouter(prefix="/posts")
 
 
-@router.get("/page")
+@router.get("/page", response_model=PostListResponse)
 async def get_posts_page(
     page: int = 1,
     sort_by: Literal["id"] = "id",
@@ -34,8 +34,8 @@ async def get_posts_page(
         return res
 
 
-@router.get("/{post_id}")
-async def get_post(post_id: int) -> Optional[PostResponse]:
+@router.get("/{post_id}", response_model=PostResponse)
+async def get_post(post_id: int) -> PostResponse:
     async with async_session_factory() as session:
         post = await PostRepository.get(session, post_id)
         if not post:
@@ -46,7 +46,7 @@ async def get_post(post_id: int) -> Optional[PostResponse]:
 
 
 @router.post("/create", status_code=status.HTTP_201_CREATED)
-async def create_post(new_post: PostResponse):
+async def create_post(new_post: PostCreate):
     async with async_session_factory() as session:
         await PostRepository.insert(
             session, title=new_post.title, content=new_post.content
