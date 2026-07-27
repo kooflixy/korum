@@ -29,6 +29,8 @@ class Settings(BaseModel):
     PUBLIC_KEY: str = open("certs/public.pem", "r", encoding="utf-8").read()
     ALGORITHM: str = "RS256"
 
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
+
     RECORDS_COUNT_ON_PAGE: int = 10
 
 

@@ -10,3 +10,8 @@ Password = Annotated[str, StringConstraints(min_length=8, max_length=256)]
 class UserCreate(BaseModel):
     username: Username
     password: Password
+
+
+class TokenInfo(BaseModel):
+    access_token: str
+    token_type: str
