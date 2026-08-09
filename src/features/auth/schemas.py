@@ -14,4 +14,9 @@ class UserCreate(BaseModel):
 
 class TokenInfo(BaseModel):
     access_token: str
-    token_type: str
+    refresh_token: str
+    token_type: str = "Bearer"
+
+
+class TokenRefresh(BaseModel):
+    refresh_token: str

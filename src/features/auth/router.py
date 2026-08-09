@@ -1,9 +1,21 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from datetime import datetime, timezone
+
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 
 from src.db import async_session_factory
-from src.features.auth.schemas import TokenInfo, UserCreate
-from src.features.auth.security import encode_jwt, hash_password
-from src.features.auth.service import get_current_auth_user, validate_auth_user
+from src.features.auth.repository import RefreshTokenRepository
+from src.features.auth.schemas import TokenInfo, TokenRefresh, UserCreate
+from src.features.auth.security import (
+    encode_jwt,
+    generate_refresh_token,
+    hash_password,
+    hash_refresh_token,
+)
+from src.features.auth.service import (
+    create_user_session,
+    get_current_auth_user,
+    validate_auth_user,
+)
 from src.features.users.repository import UserRepository
 from src.features.users.schemas import UserResponse
 
@@ -25,10 +37,72 @@ async def register(new_user: UserCreate):
 
 
 @router.post("/login", response_model=TokenInfo, tags=["Auth"])
-async def login(user: UserResponse = Depends(validate_auth_user)):
-    jwt_payload = {"sub": str(user.id), "username": user.username}
-    token = encode_jwt(jwt_payload)
-    return TokenInfo(access_token=token, token_type="Bearer")
+async def login(request: Request, user: UserResponse = Depends(validate_auth_user)):
+    async with async_session_factory() as session:
+        token_info = await create_user_session(session, user.id, user.username, request)
+
+        await session.commit()
+
+    return token_info
+
+
+@router.post("/refresh", response_model=TokenInfo, tags=["Auth"])
+async def refresh_tokens(request: Request, body: TokenRefresh):
+    old_refresh_token = body.refresh_token
+    old_refresh_token_hash = hash_refresh_token(old_refresh_token)
+
+    async with async_session_factory() as session:
+        refresh_token = await RefreshTokenRepository.get_by_hash(
+            session, old_refresh_token_hash
+        )
+
+        if not refresh_token:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid or expired refresh token",
+            )
+
+        if refresh_token.is_revoked:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token has been revoked",
+            )
+
+        if refresh_token.expires_at < datetime.now(tz=timezone.utc):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Refresh token has expired. Please log in again.",
+            )
+
+        if refresh_token.is_used:
+            await RefreshTokenRepository.revoke_all_user_tokens(
+                session, refresh_token.user_id
+            )
+            await session.commit()
+
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Security breach detected. All sessions revoked.",
+            )
+
+        if refresh_token.device_info != request.headers.get("user-agent"):
+            refresh_token.is_revoked = True
+            await session.commit()
+
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Session environment changed. Please log in again.",
+            )
+
+        refresh_token.is_used = True
+
+        token_info = await create_user_session(
+            session, refresh_token.user_id, refresh_token.user.username, request
+        )
+
+        await session.commit()
+
+    return token_info
 
 
 @router.get("/me", response_model=UserResponse, tags=["Auth"])

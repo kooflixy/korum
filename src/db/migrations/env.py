@@ -6,6 +6,11 @@ from sqlalchemy import pool
 from alembic import context
 
 from src.core.config import settings
+
+from src.features.posts.model import PostORM
+from src.features.users.model import UserORM
+from src.features.auth.model import RefreshTokenORM
+
 from src.db.database import Base
 
 # this is the Alembic Config object, which provides

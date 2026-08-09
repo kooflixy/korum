@@ -1,13 +1,24 @@
-from fastapi import Depends, Form, HTTPException, status
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi import Depends, Form, HTTPException, Request, status
+from fastapi.security import HTTPBearer, OAuth2PasswordBearer
 from jwt import InvalidTokenError
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.db import async_session_factory
-from src.features.auth.security import decode_jwt, validate_password
+from src.features.auth.repository import RefreshTokenRepository
+from src.features.auth.schemas import TokenInfo
+from src.features.auth.security import (
+    decode_jwt,
+    encode_jwt,
+    generate_refresh_token,
+    hash_refresh_token,
+    validate_password,
+)
 from src.features.users.repository import UserRepository
 from src.features.users.schemas import UserResponse
 
 http_bearer = HTTPBearer()
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
 
 async def validate_auth_user(username: str = Form(), password: str = Form()):
@@ -28,9 +39,9 @@ async def validate_auth_user(username: str = Form(), password: str = Form()):
 
 
 def get_current_token_payload(
-    creds: HTTPAuthorizationCredentials = Depends(http_bearer),
+    token: str = Depends(oauth2_scheme),
 ) -> dict:
-    token = creds.credentials
+    # token = creds.credentials
     try:
         payload = decode_jwt(token)
     except InvalidTokenError:
@@ -55,3 +66,27 @@ async def get_current_auth_user(
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="invalid token")
 
     return user
+
+
+async def create_user_session(
+    session: AsyncSession, user_id: int, username: str, request: Request
+) -> TokenInfo:
+    jwt_payload = {"sub": str(user_id), "username": username}
+    access_token = encode_jwt(jwt_payload)
+
+    refresh_token = generate_refresh_token()
+
+    user_agent = request.headers.get("user-agent")
+    ip_address = request.client.host if request.client else None
+
+    await RefreshTokenRepository.insert(
+        session,
+        user_id=user_id,
+        token_hash=hash_refresh_token(refresh_token),
+        ip_address=ip_address,
+        device_info=user_agent,
+    )
+
+    return TokenInfo(
+        access_token=access_token, refresh_token=refresh_token, token_type="Bearer"
+    )

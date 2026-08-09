@@ -1,7 +1,7 @@
 import datetime
 from typing import Annotated
 
-from sqlalchemy import text
+from sqlalchemy import DateTime, text
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
@@ -19,6 +19,7 @@ created_attp = Annotated[
 updated_attp = Annotated[
     datetime.datetime,
     mapped_column(
+        DateTime(timezone=True),
         server_default=text("TIMEZONE('utc', now())"),
         onupdate=text("TIMEZONE('utc', now())"),
     ),

@@ -1,7 +1,12 @@
+from typing import TYPE_CHECKING, List
+
 from sqlalchemy import String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.db.database import Base, created_attp, updated_attp
+
+if TYPE_CHECKING:
+    from src.features.auth.model import RefreshTokenORM
 
 
 class UserORM(Base):
@@ -12,3 +17,7 @@ class UserORM(Base):
 
     updated_at: Mapped[updated_attp]
     created_at: Mapped[created_attp]
+
+    refresh_tokens: Mapped[List["RefreshTokenORM"]] = relationship(
+        back_populates="user"
+    )

@@ -1,3 +1,5 @@
+import hashlib
+import secrets
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
@@ -44,3 +46,11 @@ def hash_password(password: str) -> bytes:
 
 def validate_password(password: str, hashed_password: bytes) -> bool:
     return bcrypt.checkpw(password.encode(), hashed_password)
+
+
+def generate_refresh_token() -> str:
+    return secrets.token_urlsafe(32)
+
+
+def hash_refresh_token(refresh_token: str) -> bytes:
+    return hashlib.sha256(refresh_token.encode()).digest()
