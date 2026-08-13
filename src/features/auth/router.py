@@ -6,8 +6,6 @@ from src.db import async_session_factory
 from src.features.auth.repository import RefreshTokenRepository
 from src.features.auth.schemas import TokenInfo, TokenRefresh, UserCreate
 from src.features.auth.security import (
-    encode_jwt,
-    generate_refresh_token,
     hash_password,
     hash_refresh_token,
 )
