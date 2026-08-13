@@ -1,30 +1,28 @@
-import os
 from logging import getLogger
-from pathlib import Path
 
 from dotenv import load_dotenv
-from pydantic import BaseModel
+from pydantic_settings import BaseSettings
 
 log = getLogger(__name__)
 
 load_dotenv()
 
 
-class Settings(BaseModel):
+class Settings(BaseSettings):
     # db
-    DB_HOST: str = os.getenv("DB_HOST")
-    DB_PORT: int = int(os.getenv("DB_PORT"))
-    DB_USER: str = os.getenv("DB_USER")
-    DB_PASS: str = os.getenv("DB_PASS")
-    DB_NAME: str = os.getenv("DB_NAME")
+    DB_HOST: str
+    DB_PORT: int
+    DB_USER: str
+    DB_PASS: str
+    DB_NAME: str
 
-    DATABASE_URL_asyncpg: str = (
-        f"postgresql+asyncpg://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-    )
-    DATABASE_URL_psycopg: str = (
-        f"postgresql+psycopg://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-    )
+    @property
+    def DATABASE_URL_asyncpg(self) -> str:
+        return f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASS}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
 
+    MODE: str
+
+    # jwt
     PRIVATE_KEY: str = open("certs/private.pem", "r", encoding="utf-8").read()
     PUBLIC_KEY: str = open("certs/public.pem", "r", encoding="utf-8").read()
     ALGORITHM: str = "RS256"
@@ -32,6 +30,7 @@ class Settings(BaseModel):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
     REFRESH_TOKEN_EXPIRE_DAYS: int = 30
 
+    # other
     RECORDS_COUNT_ON_PAGE: int = 10
 
 
