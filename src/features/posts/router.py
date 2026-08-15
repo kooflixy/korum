@@ -1,12 +1,14 @@
-from typing import Literal, Optional
+from typing import Literal
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 
 from src.core.config import settings
 from src.db import async_session_factory
+from src.features.auth.router import get_current_user
 from src.features.posts.model import PostORM
 from src.features.posts.repository import PostRepository
 from src.features.posts.schemas import PostCreate, PostListResponse, PostResponse
+from src.features.users.schemas import UserResponse
 
 router = APIRouter(prefix="/posts")
 
@@ -46,10 +48,12 @@ async def get_post(post_id: int) -> PostResponse:
 
 
 @router.post("/create", status_code=status.HTTP_201_CREATED, tags=["Posts"])
-async def create_post(new_post: PostCreate):
+async def create_post(
+    new_post: PostCreate, user: UserResponse = Depends(get_current_user)
+):
     async with async_session_factory() as session:
         await PostRepository.insert(
-            session, title=new_post.title, content=new_post.content
+            session, title=new_post.title, content=new_post.content, author_id=user.id
         )
 
         await session.commit()

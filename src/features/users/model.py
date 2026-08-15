@@ -7,6 +7,7 @@ from src.db.database import Base, created_attp, updated_attp
 
 if TYPE_CHECKING:
     from src.features.auth.model import RefreshTokenORM
+    from src.features.posts.model import PostORM
 
 
 class UserORM(Base):
@@ -17,6 +18,8 @@ class UserORM(Base):
 
     updated_at: Mapped[updated_attp]
     created_at: Mapped[created_attp]
+
+    posts: Mapped[List["PostORM"]] = relationship(back_populates="author")
 
     refresh_tokens: Mapped[List["RefreshTokenORM"]] = relationship(
         back_populates="user"

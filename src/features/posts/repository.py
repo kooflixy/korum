@@ -1,7 +1,9 @@
 from logging import getLogger
+from typing import Optional
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from src.core.config import settings
 from src.core.repository import BaseRepository
@@ -15,11 +17,26 @@ class PostRepository(BaseRepository[PostORM]):
     use_unique_scalars = True
 
     @classmethod
-    async def insert(cls, session: AsyncSession, title: str, content: str) -> PostORM:
+    async def insert(
+        cls, session: AsyncSession, title: str, content: str, author_id: int
+    ) -> PostORM:
         """Делает запись и возвращает записанный объект"""
 
-        obj = await cls._insert(session, title=title, content=content)
+        obj = await cls._insert(
+            session, title=title, content=content, author_id=author_id
+        )
 
+        return obj
+
+    @classmethod
+    async def get(cls, session: AsyncSession, id: int) -> Optional[PostORM]:
+        query = (
+            select(cls.model_cls)
+            .filter_by(id=id)
+            .options(selectinload(cls.model_cls.author))
+        )
+
+        obj = (await session.execute(query)).scalar()
         return obj
 
     @classmethod
@@ -37,6 +54,7 @@ class PostRepository(BaseRepository[PostORM]):
             .order_by(order_column)
             .offset(on_page * ((page - 1)))
             .limit(on_page)
+            .options(selectinload(cls.model_cls.author))
         )
 
         obj_list = (await session.execute(query)).scalars().all()
