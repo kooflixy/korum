@@ -40,6 +40,16 @@ class PostRepository(BaseRepository[PostORM]):
         return obj
 
     @classmethod
+    async def delete(cls, session: AsyncSession, id: int) -> None:
+        post = await cls.get(session, id)
+        if post:
+            post.is_deleted = True
+
+    @classmethod
+    async def delete_object(cls, session: AsyncSession, post: PostORM) -> None:
+        post.is_deleted = True
+
+    @classmethod
     async def get_page(
         cls,
         session: AsyncSession,
@@ -51,6 +61,7 @@ class PostRepository(BaseRepository[PostORM]):
         order_column = cls.get_order_column_and_order(order_by, sort_by)
         query = (
             select(cls.model_cls)
+            .filter_by(is_deleted=False)
             .order_by(order_column)
             .offset(on_page * ((page - 1)))
             .limit(on_page)

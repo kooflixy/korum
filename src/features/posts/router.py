@@ -40,7 +40,7 @@ async def get_posts_page(
 async def get_post(post_id: int) -> PostResponse:
     async with async_session_factory() as session:
         post = await PostRepository.get(session, post_id)
-        if not post:
+        if not post or post.is_deleted:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="Post not found"
             )
@@ -55,5 +55,25 @@ async def create_post(
         await PostRepository.insert(
             session, title=new_post.title, content=new_post.content, author_id=user.id
         )
+
+        await session.commit()
+
+
+@router.delete(
+    "/delete/{post_id}", status_code=status.HTTP_204_NO_CONTENT, tags=["Posts"]
+)
+async def delete_post(post_id: int, user: UserResponse = Depends(get_current_user)):
+    async with async_session_factory() as session:
+        post = await PostRepository.get(session, post_id)
+
+        if not post:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Post not found"
+            )
+
+        if post.author_id != user.id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
+
+        await PostRepository.delete_object(session, post)
 
         await session.commit()

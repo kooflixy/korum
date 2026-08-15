@@ -64,7 +64,7 @@ class BaseRepository(Generic[ModelType], ABC):
         """Абстрактый метод, реализуйте с использованием _insert()"""
 
     @classmethod
-    async def remove(cls, session: AsyncSession, pk_value) -> None:
+    async def delete(cls, session: AsyncSession, pk_value: int) -> None:
         """Удаляет выбранную запись"""
         query = delete(cls.model_cls).filter_by(id=pk_value)
 

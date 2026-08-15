@@ -15,6 +15,8 @@ class PostORM(Base):
     title: Mapped[str] = mapped_column(String(256))
     content: Mapped[str] = mapped_column(default="")
 
+    is_deleted: Mapped[bool] = mapped_column(default=False)
+
     author_id: Mapped[int] = mapped_column(ForeignKey("users_table.id"))
     author: Mapped["UserORM"] = relationship(back_populates="posts")
 
