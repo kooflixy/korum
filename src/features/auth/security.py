@@ -40,7 +40,8 @@ def decode_jwt(
 
 
 def hash_password(password: str) -> bytes:
-    salt = bcrypt.gensalt()
+    rounds = 4 if settings.MODE == "TEST" else 12
+    salt = bcrypt.gensalt(rounds)
     return bcrypt.hashpw(password.encode(), salt)
 
 

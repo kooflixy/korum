@@ -4,7 +4,7 @@ from pydantic import BaseModel, StringConstraints
 
 from src.features.users.schemas import Username
 
-Password = Annotated[str, StringConstraints(min_length=8, max_length=256)]
+Password = Annotated[str, StringConstraints(min_length=8, max_length=72)]
 
 
 class UserCreate(BaseModel):

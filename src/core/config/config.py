@@ -1,4 +1,5 @@
 from logging import getLogger
+from typing import Literal
 
 from dotenv import load_dotenv
 from pydantic_settings import BaseSettings
@@ -20,7 +21,7 @@ class Settings(BaseSettings):
     def DATABASE_URL_asyncpg(self) -> str:
         return f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASS}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
 
-    MODE: str
+    MODE: Literal["TEST", "DEV", "PROD"]
 
     # jwt
     PRIVATE_KEY: str = open("certs/private.pem", "r", encoding="utf-8").read()
