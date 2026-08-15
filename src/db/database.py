@@ -1,8 +1,8 @@
 import datetime
-from typing import Annotated
+from typing import Annotated, AsyncGenerator
 
 from sqlalchemy import DateTime, text
-from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 from src.core.config import settings
@@ -10,6 +10,11 @@ from src.core.config import settings
 async_engine = create_async_engine(url=settings.DATABASE_URL_asyncpg)
 
 async_session_factory = async_sessionmaker(async_engine)
+
+
+async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
+    async with async_session_factory() as session:
+        yield session
 
 
 intpk = Annotated[int, mapped_column(primary_key=True)]

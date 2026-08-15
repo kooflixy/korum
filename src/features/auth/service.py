@@ -3,7 +3,7 @@ from fastapi.security import HTTPBearer, OAuth2PasswordBearer
 from jwt import InvalidTokenError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.db import async_session_factory
+from src.db import get_async_session
 from src.features.auth.repository import RefreshTokenRepository
 from src.features.auth.schemas import TokenInfo
 from src.features.auth.security import (
@@ -21,13 +21,16 @@ http_bearer = HTTPBearer()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
 
-async def validate_auth_user(username: str = Form(), password: str = Form()):
+async def validate_auth_user(
+    username: str = Form(),
+    password: str = Form(),
+    session: AsyncSession = Depends(get_async_session),
+):
     unauthed_exc = HTTPException(
         status.HTTP_401_UNAUTHORIZED, detail="invalid username or password"
     )
 
-    async with async_session_factory() as session:
-        user = await UserRepository.get_by_username(session, username=username)
+    user = await UserRepository.get_by_username(session, username=username)
 
     if not user:
         raise unauthed_exc
@@ -51,6 +54,7 @@ def get_current_token_payload(
 
 async def get_current_auth_user(
     payload: dict = Depends(get_current_token_payload),
+    session: AsyncSession = Depends(get_async_session),
 ) -> UserResponse:
     sub_val = payload.get("sub")
 
@@ -59,8 +63,7 @@ async def get_current_auth_user(
     except (ValueError, TypeError):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="invalid token")
 
-    async with async_session_factory() as session:
-        user = await UserRepository.get_by_id(session, user_id)
+    user = await UserRepository.get_by_id(session, user_id)
 
     if not user:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="invalid token")
