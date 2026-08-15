@@ -21,7 +21,12 @@ from src.features.users.schemas import UserResponse
 router = APIRouter(prefix="/auth")
 
 
-@router.post("/register", status_code=status.HTTP_201_CREATED, tags=["Auth"])
+@router.post(
+    "/register",
+    status_code=status.HTTP_201_CREATED,
+    response_model=UserResponse,
+    tags=["Auth"],
+)
 async def register(
     new_user: UserCreate, session: AsyncSession = Depends(get_async_session)
 ):
@@ -30,10 +35,12 @@ async def register(
 
     hashed_password = hash_password(new_user.password)
 
-    await UserRepository.insert(
+    user = await UserRepository.insert(
         session, username=new_user.username, hashed_password=hashed_password
     )
     await session.commit()
+
+    return user
 
 
 @router.post("/login", response_model=TokenInfo, tags=["Auth"])
