@@ -109,7 +109,7 @@ async def test_register(
 ):
     response = await client.post(
         "/api/auth/register",
-        json={"username": username, "password": password},
+        json=dict(username=username, password=password),
     )
 
     assert response.status_code == expected_status_code

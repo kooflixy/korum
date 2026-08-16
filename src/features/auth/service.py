@@ -22,13 +22,18 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
 
 async def validate_auth_user(
-    username: str = Form(),
-    password: str = Form(),
+    username: str = Form(""),
+    password: str = Form(""),
     session: AsyncSession = Depends(get_async_session),
 ):
     unauthed_exc = HTTPException(
         status.HTTP_401_UNAUTHORIZED, detail="invalid username or password"
     )
+
+    username = username.strip()
+
+    if not username or not password:
+        raise unauthed_exc
 
     user = await UserRepository.get_by_username(session, username=username)
 
