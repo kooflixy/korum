@@ -19,7 +19,13 @@ async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
 
 intpk = Annotated[int, mapped_column(primary_key=True)]
 created_attp = Annotated[
-    datetime.datetime, mapped_column(server_default=text("TIMEZONE('utc', now())"))
+    datetime.datetime,
+    mapped_column(
+        DateTime(timezone=True),
+        server_default=text(
+            "TIMEZONE('utc', now())",
+        ),
+    ),
 ]
 updated_attp = Annotated[
     datetime.datetime,

@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 import pytest
 from fastapi import status
@@ -6,8 +6,9 @@ from freezegun import freeze_time
 from httpx import AsyncClient
 
 from src.core.config import settings
+from src.features.auth.repository import RefreshTokenRepository
 from src.features.auth.schemas import TokenInfo
-from src.features.auth.security import decode_jwt
+from src.features.auth.security import decode_jwt, hash_refresh_token
 
 
 @freeze_time("2026-01-01 12:00:00")
@@ -68,7 +69,12 @@ from src.features.auth.security import decode_jwt
     ],
 )
 async def test_login(
-    username, password, expected_status_code, client: AsyncClient, base_data: dict
+    username,
+    password,
+    expected_status_code,
+    client: AsyncClient,
+    base_data: dict,
+    session,
 ):
     response = await client.post(
         "/api/auth/login",
@@ -104,3 +110,18 @@ async def test_login(
 
         assert "password" not in jwt_payload
         assert "hashed_password" not in jwt_payload
+
+        assert "refresh_token" in response_json
+        hashed_refresh_token = hash_refresh_token(response_json["refresh_token"])
+
+        refresh_token = await RefreshTokenRepository.get_by_hash(
+            session, hashed_refresh_token
+        )
+
+        assert refresh_token
+        assert refresh_token.token_hash == hashed_refresh_token
+        assert refresh_token.expires_at == refresh_token.created_at + timedelta(
+            days=settings.REFRESH_TOKEN_EXPIRE_DAYS
+        )
+        assert refresh_token.is_used == False
+        assert refresh_token.is_revoked == False
