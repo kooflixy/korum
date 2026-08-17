@@ -27,7 +27,8 @@ async def validate_auth_user(
     session: AsyncSession = Depends(get_async_session),
 ):
     unauthed_exc = HTTPException(
-        status.HTTP_401_UNAUTHORIZED, detail="invalid username or password"
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Неверное имя пользователя или пароль",
     )
 
     username = username.strip()
@@ -53,7 +54,9 @@ def get_current_token_payload(
     try:
         payload = decode_jwt(token)
     except InvalidTokenError:
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="invalid token")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Неверный токен"
+        )
     return payload
 
 
@@ -66,12 +69,16 @@ async def get_current_auth_user(
     try:
         user_id = int(sub_val)
     except (ValueError, TypeError):
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="invalid token")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Неверный токен"
+        )
 
     user = await UserRepository.get_by_id(session, user_id)
 
     if not user:
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="invalid token")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Неверный токен"
+        )
 
     return user
 

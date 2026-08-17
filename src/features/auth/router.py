@@ -31,7 +31,10 @@ async def register(
     new_user: UserCreate, session: AsyncSession = Depends(get_async_session)
 ):
     if await UserRepository.get_by_username(session, username=new_user.username):
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT)
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Пользователь с таким именем пользователя уже существует",
+        )
 
     hashed_password = hash_password(new_user.password)
 
@@ -72,19 +75,19 @@ async def refresh_tokens(
     if not refresh_token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired refresh token",
+            detail="Сессия не найдена",
         )
 
     if refresh_token.is_revoked:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token has been revoked",
+            detail="Сессия принудительно завершена",
         )
 
     if refresh_token.expires_at < datetime.now(tz=timezone.utc):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Refresh token has expired. Please log in again.",
+            detail="Сессия истекла. Пожалуйста, войдите заново",
         )
 
     if refresh_token.is_used:
@@ -95,7 +98,7 @@ async def refresh_tokens(
 
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Security breach detected. All sessions revoked.",
+            detail="Данный токен уже использовался. В целях безопасности войдите заново",
         )
 
     if refresh_token.device_info != request.headers.get("user-agent"):
@@ -104,7 +107,7 @@ async def refresh_tokens(
 
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Session environment changed. Please log in again.",
+            detail="Параметры среды изменились. Пожалуйста, войдите заново",
         )
 
     refresh_token.is_used = True

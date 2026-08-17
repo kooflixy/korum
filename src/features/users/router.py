@@ -16,6 +16,8 @@ async def get_user(
     user = await UserRepository.get_by_id(session, id=user_id)
 
     if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Пользователь не найден"
+        )
 
     return user

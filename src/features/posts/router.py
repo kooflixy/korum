@@ -44,7 +44,7 @@ async def get_post(
     post = await PostRepository.get(session, post_id)
     if not post or post.is_deleted:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Post not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Пост не найден"
         )
     return post
 
@@ -74,11 +74,14 @@ async def delete_post(
 
     if not post:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Post not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Пост не найден"
         )
 
     if post.author_id != user.id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Вы пытаетесь удалить пост, автором которого не являетесь",
+        )
 
     await PostRepository.delete_object(session, post)
 
