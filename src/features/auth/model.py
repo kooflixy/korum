@@ -37,3 +37,5 @@ class RefreshTokenORM(Base):
 
     created_at: Mapped[created_attp]
     expires_at: Mapped[expires_attp]
+
+    repr_cols = ("user_id", "device_info", "is_revoked", "is_used", "expires_at")

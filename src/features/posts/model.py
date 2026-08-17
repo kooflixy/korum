@@ -22,3 +22,5 @@ class PostORM(Base):
 
     updated_at: Mapped[updated_attp]
     created_at: Mapped[created_attp]
+
+    repr_cols = ("title", "is_deleted", "author_id")

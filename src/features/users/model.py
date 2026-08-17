@@ -24,3 +24,5 @@ class UserORM(Base):
     refresh_tokens: Mapped[List["RefreshTokenORM"]] = relationship(
         back_populates="user"
     )
+
+    repr_cols = "username"
