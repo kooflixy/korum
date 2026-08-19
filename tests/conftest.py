@@ -8,8 +8,13 @@ from sqlalchemy.pool import NullPool
 
 from src.core.config import settings
 from src.db import get_async_session
+from src.features.auth.repository import RefreshTokenRepository
 from src.features.auth.schemas import UserCreate
-from src.features.auth.security import hash_password
+from src.features.auth.security import (
+    generate_refresh_token,
+    hash_password,
+    hash_refresh_token,
+)
 from src.features.posts.repository import PostRepository
 from src.features.users.repository import UserRepository
 from src.main import app
@@ -51,6 +56,20 @@ async def base_data(session):
             hashed_password=hash_password(user.password),
         )
         created_data[new_user.username] = new_user
+
+    await session.flush()
+
+    for user in users:
+        user = created_data[user.username]
+        refresh_token = generate_refresh_token()
+        await RefreshTokenRepository.insert(
+            session,
+            user_id=user.id,
+            token_hash=hash_refresh_token(refresh_token),
+            ip_address=f"127.0.0.1",
+            device_info=f"{user.username}_user_agent",
+        )
+        created_data[f"{user.username}_refresh_token"] = refresh_token
 
     await session.flush()
 
