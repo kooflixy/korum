@@ -1,8 +1,8 @@
 from datetime import datetime, timedelta, timezone
 
 import pytest
+import time_machine
 from fastapi import status
-from freezegun import freeze_time
 from httpx import AsyncClient
 
 from src.core.config import settings
@@ -11,7 +11,7 @@ from src.features.auth.schemas import TokenInfo
 from src.features.auth.security import decode_jwt, hash_refresh_token
 
 
-@freeze_time("2026-01-01 12:00:00")
+@time_machine.travel(datetime.now(), tick=False)
 @pytest.mark.parametrize(
     "username, password, expected_status_code",
     [
