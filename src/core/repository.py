@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from logging import getLogger
 from typing import Generic, Literal, Optional, Type, TypeVar, Union
 
-from sqlalchemy import delete, desc, select, text
+from sqlalchemy import delete, desc, select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.db.database import Base
@@ -59,12 +59,23 @@ class BaseRepository(Generic[ModelType], ABC):
         return obj
 
     @classmethod
+    async def _update(cls, session: AsyncSession, pk_value: int, **kwargs) -> ModelType:
+        query = (
+            update(cls.model_cls)
+            .filter_by(id=pk_value)
+            .values(**kwargs)
+            .returning(cls.model_cls)
+        )
+        obj = (await session.execute(query)).scalar()
+        return obj
+
+    @classmethod
     @abstractmethod
     async def insert(cls, session: AsyncSession, **kwargs) -> ModelType:
         """Абстрактый метод, реализуйте с использованием _insert()"""
 
     @classmethod
-    async def delete(cls, session: AsyncSession, pk_value: int) -> None:
+    async def remove(cls, session: AsyncSession, pk_value: int) -> None:
         """Удаляет выбранную запись"""
         query = delete(cls.model_cls).filter_by(id=pk_value)
 

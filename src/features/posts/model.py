@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -13,7 +13,7 @@ class PostORM(Base):
     __tablename__ = "posts_table"
 
     title: Mapped[str] = mapped_column(String(256))
-    content: Mapped[str] = mapped_column(default="")
+    content: Mapped[Optional[str]] = mapped_column(default=None)
 
     is_deleted: Mapped[bool] = mapped_column(default=False)
 
