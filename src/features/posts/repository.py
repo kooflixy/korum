@@ -1,7 +1,6 @@
 from logging import getLogger
 from typing import Optional
 
-from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -26,17 +25,6 @@ class PostRepository(BaseRepository[PostORM]):
         obj = await cls._insert(
             session, title=title, content=content, author_id=author_id
         )
-
-        return obj
-
-    @classmethod
-    async def update(
-        cls, session: AsyncSession, post_id: int, update_data: BaseModel
-    ) -> PostORM:
-
-        data = update_data.model_dump(exclude_unset=True)
-
-        obj = await cls._update(session, pk_value=post_id, **data)
 
         return obj
 

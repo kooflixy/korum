@@ -8,6 +8,15 @@ class UserCreate(BaseModel):
     password: Password
 
 
+class UserUpdate(BaseModel):
+    username: Username
+
+
+class UserPasswordUpdate(BaseModel):
+    password: Password
+    new_password: Password
+
+
 class TokenInfo(BaseModel):
     access_token: str
     refresh_token: str

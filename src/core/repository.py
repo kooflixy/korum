@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from logging import getLogger
 from typing import Generic, Literal, Optional, Type, TypeVar, Union
 
+from pydantic import BaseModel
 from sqlalchemy import delete, desc, select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -67,6 +68,20 @@ class BaseRepository(Generic[ModelType], ABC):
             .returning(cls.model_cls)
         )
         obj = (await session.execute(query)).scalar()
+        return obj
+
+    @classmethod
+    async def update(
+        cls, session: AsyncSession, pk_value: int, update_data: Union[BaseModel, dict]
+    ) -> ModelType:
+
+        if isinstance(update_data, BaseModel):
+            data = update_data.model_dump(exclude_unset=True)
+        elif isinstance(update_data, dict):
+            data = update_data
+
+        obj = await cls._update(session, pk_value=pk_value, **data)
+
         return obj
 
     @classmethod

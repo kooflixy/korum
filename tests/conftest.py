@@ -72,7 +72,7 @@ async def base_data(session):
         created_data[f"{user.username}_refresh_token"] = refresh_token
 
     await session.flush()
-    #fmt: off
+    # fmt: off
     posts = [
         dict(title="post1",  content="content1",  author_id=created_data["user1"].id),
         dict(title="post2",  content="content2",  author_id=created_data["user2"].id, is_deleted=True),
@@ -94,7 +94,7 @@ async def base_data(session):
         dict(title="post18", content="content10", author_id=created_data["user1"].id, is_deleted=True),
         dict(title="post19", content="content10", author_id=created_data["user3"].id),
     ]
-    #fmt: on
+    # fmt: on
 
     for post in posts:
         new_post = await PostRepository.insert(

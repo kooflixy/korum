@@ -14,10 +14,7 @@ async def get_posts_page_request(client: AsyncClient, params) -> Response:
     return response
 
 
-import pytest
-
-
-#fmt: off
+# fmt: off
 @pytest.mark.parametrize(
     "query_params, is_last_page, expected_post_list",
     [   
@@ -150,15 +147,3 @@ async def test_get_posts_page_exceptions(
     response = await get_posts_page_request(client, params=params)
 
     assert response.status_code == expected_status_code
-
-
-# async def test_get_posts_page_invalid_sort_by(client: AsyncClient, base_data: dict):
-#     response = await get_posts_page_request(client, sort_by='jfkdlasj')
-
-#     assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
-
-
-# async def test_get_posts_page_invalid_order_by(client: AsyncClient, base_data: dict):
-#     response = await get_posts_page_request(client, order_by='jfkdlasj')
-
-#     assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT

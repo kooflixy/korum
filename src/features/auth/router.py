@@ -5,10 +5,17 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.db import get_async_session
 from src.features.auth.repository import RefreshTokenRepository
-from src.features.auth.schemas import TokenInfo, TokenRefresh, UserCreate
+from src.features.auth.schemas import (
+    TokenInfo,
+    TokenRefresh,
+    UserCreate,
+    UserPasswordUpdate,
+    UserUpdate,
+)
 from src.features.auth.security import (
     hash_password,
     hash_refresh_token,
+    validate_password,
 )
 from src.features.auth.service import (
     create_user_session,
@@ -124,3 +131,43 @@ async def refresh_tokens(
 @router.get("/me", response_model=UserResponse, tags=["Auth"])
 async def get_current_user(user: UserResponse = Depends(get_current_auth_user)):
     return user
+
+
+@router.patch("/me", response_model=UserResponse, tags=["Auth"])
+async def change_user(
+    update_data: UserUpdate,
+    user: UserResponse = Depends(get_current_auth_user),
+    session: AsyncSession = Depends(get_async_session),
+):
+    updated_user = await UserRepository.update(session, user.id, update_data)
+
+    await session.commit()
+    return updated_user
+
+
+@router.post("/change-password", response_model=UserResponse, tags=["Auth"])
+async def change_user_password(
+    update_data: UserPasswordUpdate,
+    user: UserResponse = Depends(get_current_auth_user),
+    session: AsyncSession = Depends(get_async_session),
+):
+    new_password_is_current_exc = HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail="Ваш новый пароль совпадает с текущим",
+    )
+
+    if update_data.password == update_data.new_password:
+        raise new_password_is_current_exc
+
+    user_record = await validate_auth_user(user.username, update_data.password, session)
+
+    if validate_password(update_data.new_password, user_record.hashed_password):
+        raise new_password_is_current_exc
+
+    updated_user = await UserRepository.update(
+        session, user.id, {"hashed_password": hash_password(update_data.new_password)}
+    )
+
+    await session.commit()
+
+    return updated_user
