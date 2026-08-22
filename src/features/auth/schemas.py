@@ -1,10 +1,6 @@
-from typing import Annotated
-
-from pydantic import BaseModel, StringConstraints
-
+from src.core.schemas import BaseModel
+from src.core.types import Password
 from src.features.users.schemas import Username
-
-Password = Annotated[str, StringConstraints(min_length=8, max_length=72)]
 
 
 class UserCreate(BaseModel):

@@ -66,38 +66,19 @@ class PostRepository(BaseRepository[PostORM]):
         cls,
         session: AsyncSession,
         page: int,
+        per_page: int = settings.RECORDS_COUNT_ON_PAGE,
         sort_by: str = "id",
         order_by: str = "desc",
-        on_page: int = settings.RECORDS_COUNT_ON_PAGE,
     ) -> list[PostORM]:
         order_column = cls.get_order_column_and_order(order_by, sort_by)
         query = (
             select(cls.model_cls)
             .filter_by(is_deleted=False)
             .order_by(order_column)
-            .offset(on_page * ((page - 1)))
-            .limit(on_page)
+            .offset(per_page * (page - 1))
+            .limit(per_page + 1)
             .options(selectinload(cls.model_cls.author))
         )
 
         obj_list = (await session.execute(query)).scalars().all()
         return obj_list
-
-    @classmethod
-    async def is_last_page(
-        cls,
-        session: AsyncSession,
-        page: int,
-        sort_by: str = "id",
-        order_by: str = "desc",
-        on_page: int = settings.RECORDS_COUNT_ON_PAGE,
-    ) -> bool:
-        return (
-            await cls.get_page(
-                session,
-                page=page + 1,
-                sort_by=sort_by,
-                order_by=order_by,
-                on_page=on_page,
-            )
-        ) == []

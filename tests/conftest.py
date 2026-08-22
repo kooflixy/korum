@@ -72,19 +72,29 @@ async def base_data(session):
         created_data[f"{user.username}_refresh_token"] = refresh_token
 
     await session.flush()
-
+    #fmt: off
     posts = [
-        dict(title="post1", content="content1", author_id=created_data["user1"].id),
-        dict(title="post2", content="content2", author_id=created_data["user2"].id),
-        dict(title="post3", content="content3", author_id=created_data["user3"].id),
-        dict(title="post4", content="content4", author_id=created_data["user2"].id),
-        dict(title="post5", content="content5", author_id=created_data["user3"].id),
-        dict(title="post6", content="content6", author_id=created_data["user2"].id),
-        dict(title="post7", content="content7", author_id=created_data["user1"].id),
-        dict(title="post8", content="content8", author_id=created_data["user3"].id),
-        dict(title="post9", content="content9", author_id=created_data["user1"].id),
-        dict(title="post10", content="content10", author_id=created_data["user1"].id),
+        dict(title="post1",  content="content1",  author_id=created_data["user1"].id),
+        dict(title="post2",  content="content2",  author_id=created_data["user2"].id, is_deleted=True),
+        dict(title="post3",  content="content3",  author_id=created_data["user3"].id),
+        dict(title="post4",  content="content4",  author_id=created_data["user2"].id),
+        dict(title="post5",  content="content5",  author_id=created_data["user3"].id, is_deleted=True),
+        dict(title="post6",  content="content6",  author_id=created_data["user2"].id),
+        dict(title="post7",  content="content7",  author_id=created_data["user1"].id),
+        dict(title="post8",  content="content8",  author_id=created_data["user3"].id, is_deleted=True),
+        dict(title="post9",  content="content9",  author_id=created_data["user1"].id),
+        dict(title="post10", content="content10", author_id=created_data["user3"].id),
+        dict(title="post11", content="content10", author_id=created_data["user2"].id),
+        dict(title="post12", content="content10", author_id=created_data["user3"].id, is_deleted=True),
+        dict(title="post13", content="content10", author_id=created_data["user1"].id),
+        dict(title="post14", content="content10", author_id=created_data["user2"].id),
+        dict(title="post15", content="content10", author_id=created_data["user1"].id),
+        dict(title="post16", content="content10", author_id=created_data["user2"].id),
+        dict(title="post17", content="content10", author_id=created_data["user1"].id),
+        dict(title="post18", content="content10", author_id=created_data["user1"].id, is_deleted=True),
+        dict(title="post19", content="content10", author_id=created_data["user3"].id),
     ]
+    #fmt: on
 
     for post in posts:
         new_post = await PostRepository.insert(
@@ -93,6 +103,8 @@ async def base_data(session):
             content=post["content"],
             author_id=post["author_id"],
         )
+        if post.get("is_deleted"):
+            new_post.is_deleted = True
         created_data[new_post.title] = new_post
 
     await session.flush()

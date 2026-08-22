@@ -1,12 +1,12 @@
-from typing import Literal
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.config import settings
+from src.core.types import PaginationParams
 from src.db import get_async_session
 from src.features.auth.router import get_current_user
-from src.features.posts.model import PostORM
 from src.features.posts.repository import PostRepository
 from src.features.posts.schemas import (
     PostCreate,
@@ -21,25 +21,29 @@ router = APIRouter(prefix="/posts")
 
 @router.get("/page", response_model=PostListResponse, tags=["Posts"])
 async def get_posts_page(
-    page: int = 1,
+    pagination: PaginationParams = Depends(),
     sort_by: Literal["id"] = "id",
     order_by: Literal["asc", "desc"] = "desc",
     session: AsyncSession = Depends(get_async_session),
 ) -> PostListResponse:
     posts_list = await PostRepository.get_page(
-        session, page=page, sort_by=sort_by, order_by=order_by
+        session,
+        page=pagination.page,
+        per_page=pagination.per_page,
+        sort_by=sort_by,
+        order_by=order_by,
     )
 
-    if len(posts_list) < settings.RECORDS_COUNT_ON_PAGE:
-        is_last_page = True
-    else:
-        is_last_page = await PostRepository.is_last_page(
-            session, page=page, sort_by=sort_by, order_by=order_by
-        )
+    is_last_page = (
+        len(posts_list) <= pagination.per_page
+    )  # из бд запрашивается per_page+1 записей
+    post_list = posts_list[: pagination.per_page]
 
-    res = dict(data=posts_list, page=page, is_last_page=is_last_page)
-
-    return res
+    return PostListResponse(
+        data=post_list,
+        page=pagination.page,
+        is_last_page=is_last_page,
+    )
 
 
 @router.get("/{post_id}", response_model=PostResponse, tags=["Posts"])

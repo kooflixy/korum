@@ -1,8 +1,9 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import Field
 
+from src.core.schemas import BaseModel
 from src.features.users.schemas import UserResponse
 
 
