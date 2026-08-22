@@ -46,6 +46,19 @@ async def get_posts_page(
     )
 
 
+@router.post("/create", status_code=status.HTTP_201_CREATED, tags=["Posts"])
+async def create_post(
+    new_post: PostCreate,
+    user: UserResponse = Depends(get_current_user),
+    session: AsyncSession = Depends(get_async_session),
+):
+    await PostRepository.insert(
+        session, title=new_post.title, content=new_post.content, author_id=user.id
+    )
+
+    await session.commit()
+
+
 @router.get("/{post_id}", response_model=PostResponse, tags=["Posts"])
 async def get_post(
     post_id: int, session: AsyncSession = Depends(get_async_session)
@@ -85,19 +98,6 @@ async def update_post(
     await session.commit()
 
     return updated_post
-
-
-@router.post("/create", status_code=status.HTTP_201_CREATED, tags=["Posts"])
-async def create_post(
-    new_post: PostCreate,
-    user: UserResponse = Depends(get_current_user),
-    session: AsyncSession = Depends(get_async_session),
-):
-    await PostRepository.insert(
-        session, title=new_post.title, content=new_post.content, author_id=user.id
-    )
-
-    await session.commit()
 
 
 @router.delete("/{post_id}", status_code=status.HTTP_204_NO_CONTENT, tags=["Posts"])
