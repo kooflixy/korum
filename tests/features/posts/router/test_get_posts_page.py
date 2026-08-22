@@ -94,7 +94,7 @@ import pytest
 async def test_get_posts_page(
     query_params,
     is_last_page, expected_post_list,
-    client: AsyncClient, base_data: dict, session,
+    client: AsyncClient, base_data: dict
 ):
 #fmt: on
     response = await get_posts_page_request(client, params=query_params)
