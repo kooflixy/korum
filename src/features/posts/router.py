@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.core.config import settings
 from src.core.types import PaginationParams
 from src.db import get_async_session
-from src.features.auth.router import get_current_user
+from src.features.auth.service import get_current_auth_user
 from src.features.posts.repository import PostRepository
 from src.features.posts.schemas import (
     PostCreate,
@@ -49,7 +49,7 @@ async def get_posts_page(
 @router.post("/create", status_code=status.HTTP_201_CREATED, tags=["Posts"])
 async def create_post(
     new_post: PostCreate,
-    user: UserResponse = Depends(get_current_user),
+    user: UserResponse = Depends(get_current_auth_user),
     session: AsyncSession = Depends(get_async_session),
 ):
     await PostRepository.insert(
@@ -75,7 +75,7 @@ async def get_post(
 async def update_post(
     post_id: int,
     post_data: PostUpdate,
-    user: UserResponse = Depends(get_current_user),
+    user: UserResponse = Depends(get_current_auth_user),
     session: AsyncSession = Depends(get_async_session),
 ) -> PostResponse:
     post = await PostRepository.get(session, post_id)
@@ -103,7 +103,7 @@ async def update_post(
 @router.delete("/{post_id}", status_code=status.HTTP_204_NO_CONTENT, tags=["Posts"])
 async def delete_post(
     post_id: int,
-    user: UserResponse = Depends(get_current_user),
+    user: UserResponse = Depends(get_current_auth_user),
     session: AsyncSession = Depends(get_async_session),
 ):
     post = await PostRepository.get(session, post_id)

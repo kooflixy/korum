@@ -159,7 +159,16 @@ async def change_user_password(
     if update_data.password == update_data.new_password:
         raise new_password_is_current_exc
 
-    user_record = await validate_auth_user(user.username, update_data.password, session)
+    try:
+        user_record = await validate_auth_user(
+            user.username, update_data.password, session
+        )
+    except HTTPException as exc:
+        if exc.detail == "Неверное имя пользователя или пароль":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Неверный пароль"
+            )
+        raise exc
 
     if validate_password(update_data.new_password, user_record.hashed_password):
         raise new_password_is_current_exc

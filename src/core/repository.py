@@ -41,7 +41,7 @@ class BaseRepository(Generic[ModelType], ABC):
         result = await session.execute(query)
         scalars = result.scalars()
         obj_list = cls._get_unique_scalars(scalars)
-        obj_list = scalars.all()
+        obj_list = obj_list.all()
 
         return obj_list
 
@@ -98,7 +98,7 @@ class BaseRepository(Generic[ModelType], ABC):
 
     @classmethod
     def get_order_column_and_order(
-        cls, order_by: str, sort_by: Literal["asc", "desc"] = "desc"
+        cls, sort_by: str, order_by: Literal["asc", "desc"] = "desc"
     ):
         order_column = getattr(cls.model_cls, sort_by)
         if order_by == "desc":

@@ -58,7 +58,7 @@ class PostRepository(BaseRepository[PostORM]):
         sort_by: str = "id",
         order_by: str = "desc",
     ) -> list[PostORM]:
-        order_column = cls.get_order_column_and_order(order_by, sort_by)
+        order_column = cls.get_order_column_and_order(sort_by, order_by)
         query = (
             select(cls.model_cls)
             .filter_by(is_deleted=False)
