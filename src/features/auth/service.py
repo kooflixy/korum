@@ -7,6 +7,7 @@ from src.db import get_async_session
 from src.features.auth.repository import RefreshTokenRepository
 from src.features.auth.schemas import TokenInfo
 from src.features.auth.security import (
+    create_access_token,
     decode_jwt,
     encode_jwt,
     generate_refresh_token,
@@ -86,8 +87,7 @@ async def get_current_auth_user(
 async def create_user_session(
     session: AsyncSession, user_id: int, username: str, request: Request
 ) -> TokenInfo:
-    jwt_payload = {"sub": str(user_id), "username": username}
-    access_token = encode_jwt(jwt_payload)
+    access_token = create_access_token(user_id=user_id, username=username)
 
     refresh_token = generate_refresh_token()
 

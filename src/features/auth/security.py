@@ -30,6 +30,13 @@ def encode_jwt(
     return encoded
 
 
+def create_access_token(user_id: int, username: str):
+    jwt_payload = {"sub": str(user_id), "username": username}
+    access_token = encode_jwt(jwt_payload)
+
+    return access_token
+
+
 def decode_jwt(
     token: str | bytes,
     public_key: str = settings.PUBLIC_KEY,
