@@ -1,5 +1,8 @@
+from datetime import datetime, timedelta
+
 import pytest
 import pytest_asyncio
+import time_machine
 from alembic import command
 from alembic.config import Config
 from httpx import ASGITransport, AsyncClient
@@ -112,7 +115,7 @@ async def base_data(session):
     return created_data
 
 
-@pytest_asyncio.fixture()
+@pytest_asyncio.fixture
 async def client(session):
     app.dependency_overrides[get_async_session] = lambda: session
 
@@ -124,7 +127,7 @@ async def client(session):
     app.dependency_overrides.clear()
 
 
-@pytest_asyncio.fixture()
+@pytest_asyncio.fixture
 async def access_tokens(client: AsyncClient, base_data: dict):
     tokens = {}
     for num in range(1, 10**6):
@@ -138,3 +141,19 @@ async def access_tokens(client: AsyncClient, base_data: dict):
         )
         tokens[username] = response.json()["access_token"]
     return tokens
+
+
+@pytest_asyncio.fixture
+async def expired_access_token(client: AsyncClient, base_data: dict):
+    username = "user1"
+    password = "password1"
+
+    with time_machine.travel(
+        datetime.now()
+        - timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+        - timedelta(minutes=1)
+    ):
+        response = await client.post(
+            "/api/auth/login", data={"username": username, "password": password}
+        )
+    return response.json()["access_token"]

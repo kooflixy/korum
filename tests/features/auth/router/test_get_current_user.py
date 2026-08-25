@@ -1,10 +1,6 @@
-from datetime import datetime, timedelta
-
-import time_machine
 from fastapi import status
 from httpx import AsyncClient
 
-from src.core.config import settings
 from src.features.users.schemas import UserResponse
 
 
@@ -39,23 +35,10 @@ async def test_get_current_user_non_existent_token(client: AsyncClient):
 
 
 async def test_get_current_user_expired_token(
-    client: AsyncClient, base_data: dict, access_tokens: dict
+    client: AsyncClient, expired_access_token: str
 ):
-    username = "user1"
-    password = "password1"
-
-    with time_machine.travel(
-        datetime.now()
-        - timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-        - timedelta(minutes=1)
-    ):
-        response = await client.post(
-            "/api/auth/login", data={"username": username, "password": password}
-        )
-        access_tokens = response.json()["access_token"]
-
     response = await client.get(
-        "/api/auth/me", headers={"Authorization": f"Bearer {access_tokens}"}
+        "/api/auth/me", headers={"Authorization": f"Bearer {expired_access_token}"}
     )
 
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
