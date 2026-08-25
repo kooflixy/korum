@@ -14,6 +14,7 @@ from src.db import get_async_session
 from src.features.auth.repository import RefreshTokenRepository
 from src.features.auth.schemas import UserCreate
 from src.features.auth.security import (
+    create_access_token,
     generate_refresh_token,
     hash_password,
     hash_refresh_token,
@@ -132,28 +133,23 @@ async def access_tokens(client: AsyncClient, base_data: dict):
     tokens = {}
     for num in range(1, 10**6):
         username = "user" + str(num)
-        password = "password" + str(num)
-        if not username in base_data:
+        user = base_data.get(username)
+        if not user:
             break
 
-        response = await client.post(
-            "/api/auth/login", data={"username": username, "password": password}
-        )
-        tokens[username] = response.json()["access_token"]
+        tokens[username] = create_access_token(user.id, username)
     return tokens
 
 
 @pytest_asyncio.fixture
 async def expired_access_token(client: AsyncClient, base_data: dict):
     username = "user1"
-    password = "password1"
+    user_id = base_data[username].id
 
     with time_machine.travel(
         datetime.now()
         - timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
         - timedelta(minutes=1)
     ):
-        response = await client.post(
-            "/api/auth/login", data={"username": username, "password": password}
-        )
-    return response.json()["access_token"]
+        token = create_access_token(user_id, username)
+    return token
