@@ -122,3 +122,19 @@ async def client(session):
         yield client
 
     app.dependency_overrides.clear()
+
+
+@pytest_asyncio.fixture()
+async def access_tokens(client: AsyncClient, base_data: dict):
+    tokens = {}
+    for num in range(1, 10**6):
+        username = "user" + str(num)
+        password = "password" + str(num)
+        if not username in base_data:
+            break
+
+        response = await client.post(
+            "/api/auth/login", data={"username": username, "password": password}
+        )
+        tokens[username] = response.json()["access_token"]
+    return tokens
