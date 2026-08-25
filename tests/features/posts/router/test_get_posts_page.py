@@ -103,6 +103,9 @@ async def test_get_posts_page(
     assert PostListResponse.model_validate(response_json)
 
     assert [post["title"] for post in response_json["data"]] == expected_post_list
+    
+    assert all('password' not in post['author'] for post in response_json["data"])
+    assert all('hashed_password' not in post['author'] for post in response_json["data"])
 
     assert response_json["is_last_page"] == is_last_page
 

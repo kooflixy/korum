@@ -21,6 +21,9 @@ async def test_get_post_success(client: AsyncClient, base_data: dict):
     assert response_json["id"] == post_id
     assert response_json["title"] == post_title
 
+    assert "password" not in response_json["author"]
+    assert "hashed_password" not in response_json["author"]
+
     assert PostResponse.model_validate(response_json)
 
 
