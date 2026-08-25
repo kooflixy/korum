@@ -46,17 +46,25 @@ async def get_posts_page(
     )
 
 
-@router.post("/create", status_code=status.HTTP_201_CREATED, tags=["Posts"])
+@router.post(
+    "/create",
+    response_model=PostResponse,
+    status_code=status.HTTP_201_CREATED,
+    tags=["Posts"],
+)
 async def create_post(
     new_post: PostCreate,
     user: UserResponse = Depends(get_current_auth_user),
     session: AsyncSession = Depends(get_async_session),
 ):
-    await PostRepository.insert(
+    post = await PostRepository.insert(
         session, title=new_post.title, content=new_post.content, author_id=user.id
     )
 
     await session.commit()
+    await session.refresh(post, ["author"])
+
+    return post
 
 
 @router.get("/{post_id}", response_model=PostResponse, tags=["Posts"])
