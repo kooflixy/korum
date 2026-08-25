@@ -8,19 +8,19 @@ from src.features.users.schemas import UserResponse
 
 
 class PostCreate(BaseModel):
-    title: Optional[str] = Field(min_length=1, max_length=256)
-    content: Optional[str] = None
+    title: str = Field(min_length=1, max_length=256)
+    content: Optional[str] = Field(default=None, min_length=1, max_length=4096)
 
 
 class PostUpdate(BaseModel):
     title: Optional[str] = Field(default=None, min_length=1, max_length=256)
-    content: Optional[str] = None
+    content: Optional[str] = Field(default=None, min_length=1, max_length=4096)
 
 
 class PostResponse(BaseModel):
     id: int
 
-    title: str = Field(min_length=1, max_length=256)
+    title: str
     content: Optional[str]
 
     author: UserResponse

@@ -18,7 +18,7 @@ class PostRepository(BaseRepository[PostORM]):
 
     @classmethod
     async def insert(
-        cls, session: AsyncSession, title: str, content: str, author_id: int
+        cls, session: AsyncSession, title: str, content: Optional[str], author_id: int
     ) -> PostORM:
         """Делает запись и возвращает записанный объект"""
 

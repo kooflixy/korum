@@ -13,7 +13,7 @@ class PostORM(Base):
     __tablename__ = "posts_table"
 
     title: Mapped[str] = mapped_column(String(256))
-    content: Mapped[Optional[str]] = mapped_column(default=None)
+    content: Mapped[Optional[str]] = mapped_column(default=None, nullable=True)
 
     is_deleted: Mapped[bool] = mapped_column(default=False)
 
