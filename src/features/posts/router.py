@@ -99,9 +99,7 @@ async def update_post(
             detail="Вы пытаетесь изменить пост, автором которого не являетесь",
         )
 
-    updated_post = await PostRepository.update(
-        session, post_id=post_id, update_data=post_data
-    )
+    updated_post = await PostRepository.update(session, post_id, update_data=post_data)
 
     await session.commit()
 
