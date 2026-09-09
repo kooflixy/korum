@@ -12,7 +12,7 @@ class UserUpdate(BaseModel):
     username: Username
 
 
-class UserPasswordUpdate(BaseModel):
+class UserPasswordChange(BaseModel):
     password: Password
     new_password: Password
 

@@ -1,6 +1,8 @@
 from datetime import datetime, timezone
 
+from asyncpg.exceptions import UniqueViolationError
 from fastapi import APIRouter, Depends, HTTPException, Request, status
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.db import get_async_session
@@ -9,7 +11,7 @@ from src.features.auth.schemas import (
     TokenInfo,
     TokenRefresh,
     UserCreate,
-    UserPasswordUpdate,
+    UserPasswordChange,
     UserUpdate,
 )
 from src.features.auth.security import (
@@ -134,20 +136,25 @@ async def get_current_user(user: UserResponse = Depends(get_current_auth_user)):
 
 
 @router.patch("/me", response_model=UserResponse, tags=["Auth"])
-async def change_user(
+async def update_user(
     update_data: UserUpdate,
     user: UserResponse = Depends(get_current_auth_user),
     session: AsyncSession = Depends(get_async_session),
 ):
-    updated_user = await UserRepository.update(session, user.id, update_data)
+    try:
+        updated_user = await UserRepository.update(session, user.id, update_data)
 
-    await session.commit()
+        await session.commit()
+    except IntegrityError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="Имя пользователя занято"
+        )
     return updated_user
 
 
 @router.post("/change-password", response_model=UserResponse, tags=["Auth"])
 async def change_user_password(
-    update_data: UserPasswordUpdate,
+    update_data: UserPasswordChange,
     user: UserResponse = Depends(get_current_auth_user),
     session: AsyncSession = Depends(get_async_session),
 ):
