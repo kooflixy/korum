@@ -1,10 +1,11 @@
 from datetime import datetime, timezone
 
 from asyncpg.exceptions import UniqueViolationError
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.core.s3 import generate_uuid_filename, s3_service
 from src.db import get_async_session
 from src.features.auth.repository import RefreshTokenRepository
 from src.features.auth.schemas import (
@@ -133,6 +134,21 @@ async def refresh_tokens(
 @router.get("/me", response_model=UserResponse, tags=["Auth"])
 async def get_current_user(user: UserResponse = Depends(get_current_auth_user)):
     return user
+
+
+@router.patch("/me/avatar", tags=["Auth"])
+async def udpate_user_avatar(
+    update_avatar: UploadFile,
+    user: UserResponse = Depends(get_current_auth_user),
+    session: AsyncSession = Depends(get_async_session),
+):
+    object_key = generate_uuid_filename(update_avatar.filename)
+
+    user.avatar_key = object_key
+
+    await session.commit()
+
+    await s3_service.upload_file(await update_avatar.read(), object_key)
 
 
 @router.patch("/me", response_model=UserResponse, tags=["Auth"])

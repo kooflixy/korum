@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, Optional
 
 from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -14,6 +14,7 @@ class UserORM(Base):
     __tablename__ = "users_table"
 
     username: Mapped[str] = mapped_column(String(), unique=True, nullable=False)
+    avatar_key: Mapped[Optional[str]]
     hashed_password: Mapped[bytes]
 
     updated_at: Mapped[updated_attp]
