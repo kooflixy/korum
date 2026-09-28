@@ -38,6 +38,7 @@ class Settings(BaseSettings):
 
     # other
     RECORDS_COUNT_ON_PAGE: int = 10
+    DEFAULT_AVATAR_KEY: str = "default_avatar.png"
 
 
 settings = Settings()
