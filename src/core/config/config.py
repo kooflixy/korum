@@ -17,6 +17,11 @@ class Settings(BaseSettings):
     DB_PASS: str
     DB_NAME: str
 
+    S3_ACCESS_KEY: str
+    S3_SECRET_KEY: str
+    S3_BUCKET: str
+    S3_ENDPOINT_URL: str
+
     @property
     def DATABASE_URL_asyncpg(self) -> str:
         return f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASS}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
