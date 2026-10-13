@@ -17,7 +17,7 @@ class UserResponse(BaseModel):
     @computed_field
     def avatar_url(self) -> str:
         avatar_key = self.avatar_key or settings.DEFAULT_AVATAR_KEY
-        return f"{settings.S3_ENDPOINT_URL}/{settings.S3_BUCKET}/{avatar_key}"
+        return f"/api/media/{avatar_key}"
 
     created_at: datetime
     updated_at: datetime

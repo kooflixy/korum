@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
-from aiobotocore.response import StreamingBody
+from aiobotocore.response import AioStreamingBody
 from aiobotocore.session import AioBaseClient, get_session
 
 from src.core.config import settings
@@ -32,14 +32,24 @@ class S3Service:
         async with self.get_client() as client:
             await client.put_object(Bucket=self.bucket_name, Key=object_key, Body=file)
 
-    async def get_file(self, object_key: str) -> StreamingBody:
+    async def get_file(self, object_key: str) -> dict:
         async with self.get_client() as client:
             resp = await client.get_object(Bucket=self.bucket_name, Key=object_key)
-            return resp["Body"]
+            return resp
 
-    async def remove_file(self, object_key: str):
+    async def remove_file(self, object_key: str) -> None:
         async with self.get_client() as client:
             await client.delete_object(Bucket=self.bucket_name, Key=object_key)
+
+    async def get_chunk(self, body: AioStreamingBody) -> AsyncGenerator[bytes]:
+        try:
+            while True:
+                chunk = await body.read(64 * 1024)
+                if not chunk:
+                    break
+                yield chunk
+        finally:
+            body.close()
 
 
 s3_service = S3Service(
