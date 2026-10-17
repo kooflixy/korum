@@ -1,5 +1,12 @@
 import os
 import uuid
+from dataclasses import dataclass
+
+
+@dataclass
+class S3File:
+    content: bytes
+    media_type: str
 
 
 def generate_uuid_filename(name: str) -> str:
