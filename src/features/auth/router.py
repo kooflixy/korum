@@ -142,6 +142,9 @@ async def udpate_user_avatar(
     user: UserResponse = Depends(get_current_auth_user),
     session: AsyncSession = Depends(get_async_session),
 ):
+    if user.avatar_key:
+        await s3_service.remove_file(user.avatar_key)
+
     object_key = generate_uuid_filename(update_avatar.filename)
 
     user.avatar_key = object_key
