@@ -6,8 +6,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.db.database import Base, created_attp, updated_attp
 
 if TYPE_CHECKING:
-    from src.features.users.model import UserORM
     from src.features.media.model import MediaORM
+    from src.features.users.model import UserORM
 
 
 class PostORM(Base):
