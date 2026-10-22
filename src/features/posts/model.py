@@ -7,6 +7,7 @@ from src.db.database import Base, created_attp, updated_attp
 
 if TYPE_CHECKING:
     from src.features.users.model import UserORM
+    from src.features.media.model import MediaORM
 
 
 class PostORM(Base):
@@ -19,6 +20,8 @@ class PostORM(Base):
 
     author_id: Mapped[int] = mapped_column(ForeignKey("users_table.id"))
     author: Mapped["UserORM"] = relationship(back_populates="posts")
+
+    media: Mapped[list["MediaORM"]] = relationship(back_populates="post")
 
     updated_at: Mapped[updated_attp]
     created_at: Mapped[created_attp]

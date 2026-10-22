@@ -3,6 +3,7 @@ from typing import Optional
 
 from pydantic import Field
 
+from src.features.media.schemas import MediaResponse
 from src.core.schemas import BaseModel
 from src.features.users.schemas import UserResponse
 
@@ -22,6 +23,7 @@ class PostResponse(BaseModel):
 
     title: str
     content: Optional[str]
+    media: list[MediaResponse]
 
     author: UserResponse
 
