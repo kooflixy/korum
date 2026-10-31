@@ -2,5 +2,7 @@
 
 # теперь Base видит все другие модели
 from src.db.database import Base
+from src.features.auth.model import RefreshTokenORM
+from src.features.media.model import MediaORM
 from src.features.posts.model import PostORM
 from src.features.users.model import UserORM

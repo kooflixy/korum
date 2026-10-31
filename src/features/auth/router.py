@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 
+import magic
 from asyncpg.exceptions import UniqueViolationError
 from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, status
 from sqlalchemy.exc import IntegrityError
@@ -27,6 +28,11 @@ from src.features.auth.service import (
 )
 from src.features.users.repository import UserRepository
 from src.features.users.schemas import UserResponse
+
+MAX_AVATAR_MEDIAFILE_SIZE = 2 * 1024 * 1024  # 5MB
+ALLOWED_AVATAR_MIME_TYPES = [
+    "image/jpeg",
+]
 
 router = APIRouter(prefix="/auth")
 
@@ -142,10 +148,24 @@ async def udpate_user_avatar(
     user: UserResponse = Depends(get_current_auth_user),
     session: AsyncSession = Depends(get_async_session),
 ):
+    mime_type = magic.from_buffer(await update_avatar.read(2048), mime=True)
+
+    if mime_type not in ALLOWED_AVATAR_MIME_TYPES:
+        raise HTTPException(
+            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+            detail="Неподдерживаемый формат аватарки",
+        )
+
+    if update_avatar.size and update_avatar.size > MAX_AVATAR_MEDIAFILE_SIZE:
+        raise HTTPException(
+            status_code=status.HTTP_413_CONTENT_TOO_LARGE,
+            detail="Медиафайл аватарки слишком большой",
+        )
+
     if user.avatar_key:
         await s3_service.remove_file(user.avatar_key)
 
-    object_key = generate_uuid_filename(update_avatar.filename)
+    object_key = generate_uuid_filename(mime_type)
 
     user.avatar_key = object_key
 

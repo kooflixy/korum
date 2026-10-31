@@ -11,6 +11,7 @@ from src.core.config import settings
 from src.features.posts.model import PostORM
 from src.features.users.model import UserORM
 from src.features.auth.model import RefreshTokenORM
+from src.features.media.model import MediaORM
 
 from src.db.database import Base
 

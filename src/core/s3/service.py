@@ -29,9 +29,14 @@ class S3Service:
         async with self.session.create_client("s3", **self.config) as client:
             yield client
 
-    async def upload_file(self, file: bytes, object_key: str) -> None:
+    async def upload_file(self, file: bytes, object_key: str, media_type: str) -> None:
         async with self.get_client() as client:
-            await client.put_object(Bucket=self.bucket_name, Key=object_key, Body=file)
+            await client.put_object(
+                Bucket=self.bucket_name,
+                Key=object_key,
+                Body=file,
+                ContentType=media_type,
+            )
 
     async def get_file(self, object_key: str) -> S3File:
         async with self.get_client() as client:
@@ -39,7 +44,7 @@ class S3Service:
             body = resp["Body"]
             s3_file = S3File(
                 content=await body.read(),
-                media_type=resp.get("ContentType", "application/octet-stream"),
+                media_type=resp.get("ContentType", "image/jpeg"),
             )
             return s3_file
 
