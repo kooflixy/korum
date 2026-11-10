@@ -27,10 +27,10 @@ ALLOWED_MIME_TYPES = [
     "image/webp",
 ]
 
-router = APIRouter(tags=["Media"])
+router = APIRouter(prefix="/media", tags=["Media"])
 
 
-@router.get("/media/{object_key}")
+@router.get("/{object_key}")
 async def get_media(object_key: str):
     try:
         s3_file = await s3_service.get_file(object_key)
@@ -44,7 +44,7 @@ async def get_media(object_key: str):
     return Response(content=s3_file.content, media_type=s3_file.media_type)
 
 
-@router.post("/media/upload", response_model=MediaResponse)
+@router.post("/upload", response_model=MediaResponse)
 async def upload_media(
     post_id: int,
     uploaded_media: UploadFile = File(...),
