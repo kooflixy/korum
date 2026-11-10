@@ -62,7 +62,7 @@ async def create_post(
     )
 
     await session.commit()
-    await session.refresh(post, ["author"])
+    await session.refresh(post, ["author", "media"])
 
     return post
 

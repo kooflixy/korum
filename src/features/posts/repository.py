@@ -33,7 +33,10 @@ class PostRepository(BaseRepository[PostORM]):
         query = (
             select(cls.model_cls)
             .filter_by(id=id)
-            .options(selectinload(cls.model_cls.author, cls.model_cls.media))
+            .options(
+                selectinload(cls.model_cls.author),
+                selectinload(cls.model_cls.media),
+            )
         )
 
         obj = (await session.execute(query)).scalar()
@@ -65,7 +68,10 @@ class PostRepository(BaseRepository[PostORM]):
             .order_by(order_column)
             .offset(per_page * (page - 1))
             .limit(per_page + 1)
-            .options(selectinload(cls.model_cls.author, cls.model_cls.media))
+            .options(
+                selectinload(cls.model_cls.author),
+                selectinload(cls.model_cls.media),
+            )
         )
 
         obj_list = (await session.execute(query)).scalars().all()
