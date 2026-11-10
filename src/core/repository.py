@@ -97,6 +97,13 @@ class BaseRepository(Generic[ModelType], ABC):
         await session.execute(query)
 
     @classmethod
+    async def remove_many(cls, session: AsyncSession, pk_values: list[int]) -> None:
+        """Удаляет записи с переданными pk_value"""
+        query = delete(cls.model_cls).filter(cls.model_cls.id.in_(pk_values))
+
+        await session.execute(query)
+
+    @classmethod
     def get_order_column_and_order(
         cls, sort_by: str, order_by: Literal["asc", "desc"] = "desc"
     ):
