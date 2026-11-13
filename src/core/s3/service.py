@@ -52,6 +52,18 @@ class S3Service:
         async with self.get_client() as client:
             await client.delete_object(Bucket=self.bucket_name, Key=object_key)
 
+    async def remove_files(self, object_keys: list[str]) -> None:
+        if not object_keys:
+            return
+
+        objects_to_delete = [{"Key": key} for key in object_keys]
+
+        async with self.get_client() as client:
+            await client.delete_objects(
+                Bucket=self.bucket_name,
+                Delete={"Objects": objects_to_delete, "Quiet": True},
+            )
+
 
 s3_service = S3Service(
     access_key=settings.S3_ACCESS_KEY,

@@ -1,7 +1,9 @@
 from logging import getLogger
 from typing import Optional
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from src.core.config import settings
 from src.core.repository import BaseRepository
@@ -28,4 +30,15 @@ class MediaRepository(BaseRepository[MediaORM]):
             session, file_key=file_key, post_id=post_id, status=status
         )
 
+        return obj
+
+    @classmethod
+    async def get_by_key(cls, session: AsyncSession, key: str) -> Optional[MediaORM]:
+        query = (
+            select(cls.model_cls)
+            .filter_by(file_key=key)
+            .options(selectinload(cls.model_cls.post))
+        )
+
+        obj = (await session.execute(query)).scalar()
         return obj

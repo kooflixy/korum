@@ -44,6 +44,39 @@ async def get_media(object_key: str):
     return Response(content=s3_file.content, media_type=s3_file.media_type)
 
 
+@router.delete("/{object_key}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_media(
+    object_key: list[str],
+    user: UserResponse = Depends(get_current_auth_user),
+    session: AsyncSession = Depends(get_async_session),
+):
+    obj = await MediaRepository.get_by_key(session, object_key)
+    if not obj:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Медиафайл не найден"
+        )
+
+    if obj.post.author_id != user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Вы не являетесь автором поста, к которому прикреплен медиафайл",
+        )
+
+    try:
+        await MediaRepository.remove(session, object_key)
+        await s3_service.remove_file(object_key)
+
+        await session.commit()
+    except ClientError as exc:
+        await session.rollback()
+
+        if exc.response["Error"]["Code"] in ("NoSuchKey", "404", "NotFound"):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Медиафайл не найден"
+            )
+        raise exc
+
+
 @router.post("/upload", response_model=MediaResponse)
 async def upload_media(
     post_id: int,
