@@ -1,7 +1,7 @@
 from logging import getLogger
 from typing import Optional
 
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -22,7 +22,7 @@ class MediaRepository(BaseRepository[MediaORM]):
         session: AsyncSession,
         file_key: str,
         post_id: int,
-        status: MediaStatus.READY,
+        status: MediaStatus = MediaStatus.READY,
     ) -> MediaORM:
         """Делает запись и возвращает записанный объект"""
 
@@ -41,4 +41,18 @@ class MediaRepository(BaseRepository[MediaORM]):
         )
 
         obj = (await session.execute(query)).scalar()
+        return obj
+
+    @classmethod
+    async def remove_by_key(cls, session: AsyncSession, key: str) -> None:
+        query = delete(cls.model_cls).filter_by(file_key=key)
+
+        obj = await session.execute(query)
+        return obj
+
+    @classmethod
+    async def remove_many_by_key(cls, session: AsyncSession, keys: list[str]) -> None:
+        query = delete(cls.model_cls).filter(cls.model_cls.file_key.in_(keys))
+
+        obj = await session.execute(query)
         return obj

@@ -128,7 +128,7 @@ async def delete_post(
 
     media_for_remove = [media.file_key for media in post.media]
 
-    await MediaRepository.remove_many(session, media_for_remove)
+    await MediaRepository.remove_many_by_key(session, media_for_remove)
     await PostRepository.delete_object(session, post)
     await session.commit()
 

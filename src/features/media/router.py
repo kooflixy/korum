@@ -61,7 +61,7 @@ async def delete_media(
         )
 
     try:
-        await MediaRepository.remove(session, object_key)
+        await MediaRepository.remove_by_key(session, object_key)
         await s3_service.remove_file(object_key)
 
         await session.commit()
