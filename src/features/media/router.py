@@ -100,21 +100,21 @@ async def upload_media(
 
     object_key = generate_uuid_filename(uploaded_media.mime_type)
 
+    await s3_service.upload_file(
+        await uploaded_media.file.read(),
+        object_key,
+        uploaded_media.mime_type,
+    )
+
     try:
         media_record = await MediaRepository.insert(
             session, file_key=object_key, post_id=post_id
         )
 
-        await s3_service.upload_file(
-            await uploaded_media.file.read(),
-            object_key,
-            uploaded_media.mime_type,
-        )
-
         await session.commit()
     except Exception:
         await session.rollback()
-        await MediaRepository.remove(session, media_record.id)
+        await s3_service.remove_file(object_key)
 
         raise
 
