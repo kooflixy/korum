@@ -1,14 +1,13 @@
-from typing import Annotated, Literal
+from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from features.media.repository import MediaRepository
-from src.core.config import settings
 from src.core.s3.service import s3_service
 from src.core.types import PaginationParams
 from src.db import get_async_session
 from src.features.auth.service import get_current_auth_user
+from src.features.media.repository import MediaRepository
 from src.features.posts.repository import PostRepository
 from src.features.posts.schemas import (
     PostCreate,

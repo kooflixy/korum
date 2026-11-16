@@ -1,8 +1,6 @@
 from datetime import datetime, timezone
 
-import magic
-from asyncpg.exceptions import UniqueViolationError
-from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -26,13 +24,14 @@ from src.features.auth.service import (
     get_current_auth_user,
     validate_auth_user,
 )
+from src.features.media.service import ValidatedFile, validate_file
 from src.features.users.repository import UserRepository
 from src.features.users.schemas import UserResponse
 
 MAX_AVATAR_MEDIAFILE_SIZE = 2 * 1024 * 1024  # 5MB
-ALLOWED_AVATAR_MIME_TYPES = [
+ALLOWED_AVATAR_MIME_TYPES = {
     "image/jpeg",
-]
+}
 
 router = APIRouter(prefix="/auth")
 
@@ -144,34 +143,24 @@ async def get_current_user(user: UserResponse = Depends(get_current_auth_user)):
 
 @router.patch("/me/avatar", tags=["Auth"])
 async def udpate_user_avatar(
-    update_avatar: UploadFile,
+    update_avatar: ValidatedFile = Depends(
+        validate_file(MAX_AVATAR_MEDIAFILE_SIZE, ALLOWED_AVATAR_MIME_TYPES)
+    ),
     user: UserResponse = Depends(get_current_auth_user),
     session: AsyncSession = Depends(get_async_session),
 ):
-    mime_type = magic.from_buffer(await update_avatar.read(2048), mime=True)
-
-    if mime_type not in ALLOWED_AVATAR_MIME_TYPES:
-        raise HTTPException(
-            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-            detail="Неподдерживаемый формат аватарки",
-        )
-
-    if update_avatar.size and update_avatar.size > MAX_AVATAR_MEDIAFILE_SIZE:
-        raise HTTPException(
-            status_code=status.HTTP_413_CONTENT_TOO_LARGE,
-            detail="Медиафайл аватарки слишком большой",
-        )
-
     if user.avatar_key:
         await s3_service.remove_file(user.avatar_key)
 
-    object_key = generate_uuid_filename(mime_type)
+    object_key = generate_uuid_filename(update_avatar.mime_type)
 
     user.avatar_key = object_key
 
     await session.commit()
 
-    await s3_service.upload_file(await update_avatar.read(), object_key)
+    await s3_service.upload_file(
+        await update_avatar.file.read(), object_key, update_avatar.mime_type
+    )
 
 
 @router.patch("/me", response_model=UserResponse, tags=["Auth"])

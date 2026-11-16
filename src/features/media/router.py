@@ -1,12 +1,9 @@
-import magic
 from botocore.exceptions import ClientError
 from fastapi import (
     APIRouter,
     Depends,
-    File,
     HTTPException,
     Response,
-    UploadFile,
     status,
 )
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -17,15 +14,16 @@ from src.db import get_async_session
 from src.features.auth.service import get_current_auth_user
 from src.features.media.repository import MediaRepository
 from src.features.media.schemas import MediaResponse
+from src.features.media.service import ValidatedFile, validate_file
 from src.features.posts.repository import PostRepository
 from src.features.users.schemas import UserResponse
 
 MAX_POST_MEDIAFILE_SIZE = 5 * 1024 * 1024  # 5MB
-ALLOWED_MIME_TYPES = [
+ALLOWED_MIME_TYPES = {
     "image/jpeg",
     "image/png",
     "image/webp",
-]
+}
 
 router = APIRouter(prefix="/media", tags=["Media"])
 
@@ -46,7 +44,7 @@ async def get_media(object_key: str):
 
 @router.delete("/{object_key}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_media(
-    object_key: list[str],
+    object_key: str,
     user: UserResponse = Depends(get_current_auth_user),
     session: AsyncSession = Depends(get_async_session),
 ):
@@ -80,26 +78,12 @@ async def delete_media(
 @router.post("/upload", response_model=MediaResponse)
 async def upload_media(
     post_id: int,
-    uploaded_media: UploadFile = File(...),
+    uploaded_media: ValidatedFile = Depends(
+        validate_file(MAX_POST_MEDIAFILE_SIZE, ALLOWED_MIME_TYPES)
+    ),
     user: UserResponse = Depends(get_current_auth_user),
     session: AsyncSession = Depends(get_async_session),
 ):
-    mime_type = magic.from_buffer(await uploaded_media.read(2048), mime=True)
-
-    if mime_type not in ALLOWED_MIME_TYPES:
-        raise HTTPException(
-            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-            detail="Неподдерживаемый формат медиафайла",
-        )
-
-    if uploaded_media.size and uploaded_media.size > MAX_POST_MEDIAFILE_SIZE:
-        raise HTTPException(
-            status_code=status.HTTP_413_CONTENT_TOO_LARGE,
-            detail="Медиафайл слишком большой",
-        )
-
-    await uploaded_media.seek(0)
-
     post = await PostRepository.get(session, post_id)
 
     if not post:
@@ -114,7 +98,7 @@ async def upload_media(
             detail="Вы не являетесь автором поста",
         )
 
-    object_key = generate_uuid_filename(mime_type)
+    object_key = generate_uuid_filename(uploaded_media.mime_type)
 
     try:
         media_record = await MediaRepository.insert(
@@ -122,7 +106,9 @@ async def upload_media(
         )
 
         await s3_service.upload_file(
-            await uploaded_media.read(), object_key, media_type=mime_type
+            await uploaded_media.file.read(),
+            object_key,
+            uploaded_media.mime_type,
         )
 
         await session.commit()
