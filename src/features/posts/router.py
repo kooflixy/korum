@@ -3,7 +3,9 @@ from typing import Annotated, Literal
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from features.media.repository import MediaRepository
 from src.core.config import settings
+from src.core.s3.service import s3_service
 from src.core.types import PaginationParams
 from src.db import get_async_session
 from src.features.auth.service import get_current_auth_user
@@ -125,6 +127,10 @@ async def delete_post(
             detail="Вы пытаетесь удалить пост, автором которого не являетесь",
         )
 
-    await PostRepository.delete_object(session, post)
+    media_for_remove = [media.file_key for media in post.media]
 
+    await MediaRepository.remove_many(session, media_for_remove)
+    await PostRepository.delete_object(session, post)
     await session.commit()
+
+    await s3_service.remove_files(media_for_remove)
