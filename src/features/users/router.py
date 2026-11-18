@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.core.types import PgPositiveInt
 from src.db import get_async_session
 from src.features.auth.security import hash_password
 from src.features.users.repository import UserRepository
@@ -11,7 +12,7 @@ router = APIRouter(prefix="/users")
 
 @router.get("/{user_id}", response_model=UserResponse, tags=["Users"])
 async def get_user(
-    user_id: int, session: AsyncSession = Depends(get_async_session)
+    user_id: PgPositiveInt, session: AsyncSession = Depends(get_async_session)
 ) -> UserResponse:
     user = await UserRepository.get_by_id(session, id=user_id)
 

@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.core.config import settings
 from src.core.s3 import s3_service
 from src.core.s3.utils import generate_uuid_filename
+from src.core.types import PgPositiveInt
 from src.db import get_async_session
 from src.features.auth.service import get_current_auth_user
 from src.features.media.repository import MediaRepository
@@ -71,7 +72,7 @@ async def delete_media(
 
 @router.post("/upload", response_model=MediaResponse)
 async def upload_media(
-    post_id: int,
+    post_id: PgPositiveInt,
     uploaded_media: ValidatedFile = Depends(
         validate_file(
             settings.MAX_POST_MEDIAFILE_SIZE, settings.ALLOWED_POST_MIME_TYPES

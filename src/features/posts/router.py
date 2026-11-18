@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.s3.service import s3_service
-from src.core.types import PaginationParams
+from src.core.types import PaginationParams, PgPositiveInt
 from src.db import get_async_session
 from src.features.auth.service import get_current_auth_user
 from src.features.media.repository import MediaRepository
@@ -70,7 +70,7 @@ async def create_post(
 
 @router.get("/{post_id}", response_model=PostResponse, tags=["Posts"])
 async def get_post(
-    post_id: int, session: AsyncSession = Depends(get_async_session)
+    post_id: PgPositiveInt, session: AsyncSession = Depends(get_async_session)
 ) -> PostResponse:
     post = await PostRepository.get(session, post_id)
     if not post or post.is_deleted:
@@ -82,7 +82,7 @@ async def get_post(
 
 @router.patch("/{post_id}", response_model=PostResponse, tags=["Posts"])
 async def update_post(
-    post_id: int,
+    post_id: PgPositiveInt,
     post_data: PostUpdate,
     user: UserResponse = Depends(get_current_auth_user),
     session: AsyncSession = Depends(get_async_session),
@@ -109,7 +109,7 @@ async def update_post(
 
 @router.delete("/{post_id}", status_code=status.HTTP_204_NO_CONTENT, tags=["Posts"])
 async def delete_post(
-    post_id: int,
+    post_id: PgPositiveInt,
     user: UserResponse = Depends(get_current_auth_user),
     session: AsyncSession = Depends(get_async_session),
 ):
