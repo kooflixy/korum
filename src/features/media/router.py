@@ -94,6 +94,12 @@ async def upload_media(
             detail="Вы не являетесь автором поста",
         )
 
+    if len(post.media) >= settings.MAX_POST_MEDIAFILE_COUNT:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail=f"Превышен лимит файлов. Максимум для одного поста: {settings.MAX_POST_MEDIAFILE_COUNT}",
+        )
+
     object_key = generate_uuid_filename(uploaded_media.mime_type)
 
     await s3_service.upload_file(

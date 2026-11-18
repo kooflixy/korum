@@ -49,6 +49,7 @@ class Settings(BaseSettings):
         "image/png",
         "image/webp",
     }
+    MAX_POST_MEDIAFILE_COUNT: int = 1
 
 
 settings = Settings()
