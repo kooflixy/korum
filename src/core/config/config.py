@@ -38,7 +38,17 @@ class Settings(BaseSettings):
 
     # other
     RECORDS_COUNT_ON_PAGE: int = 10
+
+    MAX_AVATAR_MEDIAFILE_SIZE: int = 2 * 1024 * 1024  # 2MB
+    ALLOWED_AVATAR_MIME_TYPES: set = {"image/jpeg"}
     DEFAULT_AVATAR_KEY: str = "default_avatar.png"
+
+    MAX_POST_MEDIAFILE_SIZE: int = 5 * 1024 * 1024  # 5MB
+    ALLOWED_POST_MIME_TYPES: set = {
+        "image/jpeg",
+        "image/png",
+        "image/webp",
+    }
 
 
 settings = Settings()

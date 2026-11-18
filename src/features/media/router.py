@@ -8,6 +8,7 @@ from fastapi import (
 )
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.core.config import settings
 from src.core.s3 import s3_service
 from src.core.s3.utils import generate_uuid_filename
 from src.db import get_async_session
@@ -17,13 +18,6 @@ from src.features.media.schemas import MediaResponse
 from src.features.media.service import ValidatedFile, validate_file
 from src.features.posts.repository import PostRepository
 from src.features.users.schemas import UserResponse
-
-MAX_POST_MEDIAFILE_SIZE = 5 * 1024 * 1024  # 5MB
-ALLOWED_MIME_TYPES = {
-    "image/jpeg",
-    "image/png",
-    "image/webp",
-}
 
 router = APIRouter(prefix="/media", tags=["Media"])
 
@@ -79,7 +73,9 @@ async def delete_media(
 async def upload_media(
     post_id: int,
     uploaded_media: ValidatedFile = Depends(
-        validate_file(MAX_POST_MEDIAFILE_SIZE, ALLOWED_MIME_TYPES)
+        validate_file(
+            settings.MAX_POST_MEDIAFILE_SIZE, settings.ALLOWED_POST_MIME_TYPES
+        )
     ),
     user: UserResponse = Depends(get_current_auth_user),
     session: AsyncSession = Depends(get_async_session),

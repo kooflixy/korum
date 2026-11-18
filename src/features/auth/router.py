@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.core.config import settings
 from src.core.s3 import generate_uuid_filename, s3_service
 from src.db import get_async_session
 from src.features.auth.repository import RefreshTokenRepository
@@ -27,11 +28,6 @@ from src.features.auth.service import (
 from src.features.media.service import ValidatedFile, validate_file
 from src.features.users.repository import UserRepository
 from src.features.users.schemas import UserResponse
-
-MAX_AVATAR_MEDIAFILE_SIZE = 2 * 1024 * 1024  # 5MB
-ALLOWED_AVATAR_MIME_TYPES = {
-    "image/jpeg",
-}
 
 router = APIRouter(prefix="/auth")
 
@@ -144,7 +140,9 @@ async def get_current_user(user: UserResponse = Depends(get_current_auth_user)):
 @router.patch("/me/avatar", tags=["Auth"])
 async def udpate_user_avatar(
     update_avatar: ValidatedFile = Depends(
-        validate_file(MAX_AVATAR_MEDIAFILE_SIZE, ALLOWED_AVATAR_MIME_TYPES)
+        validate_file(
+            settings.MAX_AVATAR_MEDIAFILE_SIZE, settings.ALLOWED_AVATAR_MIME_TYPES
+        )
     ),
     user: UserResponse = Depends(get_current_auth_user),
     session: AsyncSession = Depends(get_async_session),
